@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { Company, SparePart, StockMovement, InventoryItem } from './types'
+import { persist } from 'zustand/middleware'
+import { Company, SparePart, StockMovement, InventoryItem, Quotation, SystemSettings, UserProfile } from './types'
 
 // Generate unique IDs
 const generateId = () => Math.random().toString(36).substring(2, 15)
@@ -140,12 +141,52 @@ interface DashboardStore {
   adjustStock: (partId: string, newTotal: number, note?: string) => void
   getInventoryItems: () => InventoryItem[]
   getMovementsForPart: (partId: string) => StockMovement[]
+  
+  // Quotations
+  quotations: Quotation[]
+  quotationCounter: number
+  addQuotation: (quotation: Omit<Quotation, 'id' | 'quotationNumber' | 'createdAt' | 'updatedAt'>) => Quotation
+  updateQuotation: (id: string, quotation: Partial<Quotation>) => void
+  deleteQuotation: (id: string) => void
+  getNextQuotationNumber: () => string
+  getQuotationsByCompany: (companyId: string) => Quotation[]
+  duplicateQuotation: (id: string) => Quotation | null
+  
+  // Auth & Settings
+  isAuthenticated: boolean
+  userProfile: UserProfile
+  systemSettings: SystemSettings
+  login: (username: string, password: string) => boolean
+  logout: () => void
+  updateProfile: (profile: Partial<UserProfile>) => void
+  updatePassword: (currentPassword: string, newPassword: string) => boolean
+  updateSettings: (settings: Partial<SystemSettings>) => void
 }
+
+// Default credentials
+const DEFAULT_USERNAME = 'admin'
+const DEFAULT_PASSWORD = 'admin123'
+
+// Store password in memory (in real app, this would be hashed and in a database)
+let currentPassword = DEFAULT_PASSWORD
 
 export const useDashboardStore = create<DashboardStore>((set, get) => ({
   companies: sampleCompanies,
   spareParts: sampleParts,
   stockMovements: sampleMovements,
+  quotations: [],
+  quotationCounter: 0,
+  isAuthenticated: false,
+  userProfile: {
+    name: 'VyR Team',
+    username: 'admin',
+    profileImage: '',
+  },
+  systemSettings: {
+    igvPercentage: 18,
+    currency: '$',
+    sellerName: 'Luis Villavicencio',
+  },
   
   // Company methods
   addCompany: (company) => set((state) => ({
@@ -266,7 +307,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
       partNumber: part.partNumber,
       description: part.description,
       currentStock: part.quantity,
-      minimumStock: 10, // Default minimum
+      minimumStock: 10,
     }))
   },
   
@@ -274,5 +315,144 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     return get().stockMovements
       .filter((m) => m.partId === partId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+  },
+  
+  // Quotation methods
+  getNextQuotationNumber: () => {
+    const year = new Date().getFullYear()
+    const counter = get().quotationCounter + 1
+    return `COT-${year}-${counter.toString().padStart(5, '0')}`
+  },
+  
+  addQuotation: (quotation) => {
+    const quotationNumber = get().getNextQuotationNumber()
+    const newQuotation: Quotation = {
+      ...quotation,
+      id: generateId(),
+      quotationNumber,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    
+    // Reduce stock for each item with a partId
+    quotation.items.forEach(item => {
+      if (item.partId) {
+        get().removeStock(item.partId, item.quantity)
+      }
+    })
+    
+    // Update company's last activity
+    get().updateCompany(quotation.companyId, { lastActivity: new Date() })
+    
+    set((state) => ({
+      quotations: [...state.quotations, newQuotation],
+      quotationCounter: state.quotationCounter + 1,
+    }))
+    
+    return newQuotation
+  },
+  
+  updateQuotation: (id, updates) => {
+    const oldQuotation = get().quotations.find(q => q.id === id)
+    if (!oldQuotation) return
+    
+    // If items changed, adjust stock differences
+    if (updates.items) {
+      // Restore old stock
+      oldQuotation.items.forEach(item => {
+        if (item.partId) {
+          get().addStock(item.partId, item.quantity)
+        }
+      })
+      
+      // Deduct new stock
+      updates.items.forEach(item => {
+        if (item.partId) {
+          get().removeStock(item.partId, item.quantity)
+        }
+      })
+    }
+    
+    set((state) => ({
+      quotations: state.quotations.map((q) =>
+        q.id === id ? { ...q, ...updates, updatedAt: new Date() } : q
+      )
+    }))
+  },
+  
+  deleteQuotation: (id) => {
+    const quotation = get().quotations.find(q => q.id === id)
+    if (!quotation) return
+    
+    // Restore stock
+    quotation.items.forEach(item => {
+      if (item.partId) {
+        get().addStock(item.partId, item.quantity)
+      }
+    })
+    
+    set((state) => ({
+      quotations: state.quotations.filter((q) => q.id !== id)
+    }))
+  },
+  
+  getQuotationsByCompany: (companyId) => {
+    return get().quotations
+      .filter((q) => q.companyId === companyId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+  },
+  
+  duplicateQuotation: (id) => {
+    const original = get().quotations.find(q => q.id === id)
+    if (!original) return null
+    
+    const newQuotation = get().addQuotation({
+      date: new Date(),
+      seller: original.seller,
+      currency: original.currency,
+      validity: original.validity,
+      companyId: original.companyId,
+      companyName: original.companyName,
+      companyRuc: original.companyRuc,
+      items: original.items.map(item => ({ ...item, id: generateId() })),
+      subtotal: original.subtotal,
+      igv: original.igv,
+      total: original.total,
+    })
+    
+    return newQuotation
+  },
+  
+  // Auth methods
+  login: (username, password) => {
+    if (username === DEFAULT_USERNAME && password === currentPassword) {
+      set({ isAuthenticated: true })
+      return true
+    }
+    return false
+  },
+  
+  logout: () => {
+    set({ isAuthenticated: false })
+  },
+  
+  updateProfile: (profile) => {
+    set((state) => ({
+      userProfile: { ...state.userProfile, ...profile }
+    }))
+  },
+  
+  updatePassword: (oldPassword, newPassword) => {
+    if (oldPassword === currentPassword) {
+      currentPassword = newPassword
+      return true
+    }
+    return false
+  },
+  
+  updateSettings: (settings) => {
+    set((state) => ({
+      systemSettings: { ...state.systemSettings, ...settings }
+    }))
   },
 }))

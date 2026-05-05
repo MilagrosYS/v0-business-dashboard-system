@@ -51,3 +51,46 @@ export function getActivityStatus(lastActivity: Date): ActivityStatus {
   if (diffDays <= 90) return 'warning'
   return 'inactive'
 }
+
+// Quotation types
+export interface QuotationItem {
+  id: string
+  internalCode: string
+  partNumber: string
+  description: string
+  quantity: number
+  unitPrice: number
+  total: number
+  partId?: string // Link to spare part if exists
+}
+
+export interface Quotation {
+  id: string
+  quotationNumber: string
+  date: Date
+  seller: string
+  currency: string
+  validity: number // days
+  companyId: string
+  companyName: string
+  companyRuc: string
+  items: QuotationItem[]
+  subtotal: number
+  igv: number
+  total: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+// Settings types
+export interface SystemSettings {
+  igvPercentage: number
+  currency: string
+  sellerName: string
+}
+
+export interface UserProfile {
+  name: string
+  username: string
+  profileImage: string
+}

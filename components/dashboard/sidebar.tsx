@@ -1,6 +1,6 @@
 'use client'
 
-import { Building2, Package, Warehouse, LayoutDashboard } from 'lucide-react'
+import { Building2, Package, Warehouse, LayoutDashboard, FileText, History } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
@@ -13,6 +13,8 @@ const navItems = [
   { id: 'companies', label: 'Companies', icon: Building2 },
   { id: 'parts', label: 'Spare Parts', icon: Package },
   { id: 'inventory', label: 'Inventory', icon: Warehouse },
+  { id: 'quotations', label: 'Quotations', icon: FileText },
+  { id: 'history', label: 'History', icon: History },
 ]
 
 export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
