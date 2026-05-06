@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Plus, Search, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,7 +25,7 @@ import { Label } from '@/components/ui/label'
 import { useDashboardStore } from '@/lib/store'
 import { SparePart } from '@/lib/types'
 
-type ModalMode = 'create' | 'edit' | null
+type ModalMode = 'create' | 'edit' | 'detail' | null
 
 export function SpareParts() {
   const { spareParts, addSparePart, updateSparePart, deleteSparePart } = useDashboardStore()
@@ -33,6 +33,7 @@ export function SpareParts() {
   const [modalMode, setModalMode] = useState<ModalMode>(null)
   const [selectedPart, setSelectedPart] = useState<SparePart | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<SparePart | null>(null)
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   
   // Form state
   const [formData, setFormData] = useState({
@@ -69,7 +70,8 @@ export function SpareParts() {
     setModalMode('create')
   }
   
-  const openEdit = (part: SparePart) => {
+  const openEdit = (e: React.MouseEvent, part: SparePart) => {
+    e.stopPropagation()
     setSelectedPart(part)
     setFormData({
       internalCode: part.internalCode,
@@ -81,6 +83,11 @@ export function SpareParts() {
       price: part.price.toString(),
     })
     setModalMode('edit')
+  }
+  
+  const openDetail = (part: SparePart) => {
+    setSelectedPart(part)
+    setModalMode('detail')
   }
   
   const closeModal = () => {
@@ -109,7 +116,12 @@ export function SpareParts() {
     closeModal()
   }
   
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent, part: SparePart) => {
+    e.stopPropagation()
+    setDeleteConfirm(part)
+  }
+  
+  const confirmDelete = () => {
     if (deleteConfirm) {
       deleteSparePart(deleteConfirm.id)
       setDeleteConfirm(null)
@@ -153,6 +165,7 @@ export function SpareParts() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-16">Item</TableHead>
                 <TableHead>Internal Code</TableHead>
                 <TableHead>Part Number</TableHead>
                 <TableHead>Model</TableHead>
@@ -167,13 +180,26 @@ export function SpareParts() {
             <TableBody>
               {filteredParts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
                     No spare parts found
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredParts.map((part) => (
-                  <TableRow key={part.id} className="table-row-hover group">
+                filteredParts.map((part, index) => (
+                  <TableRow 
+                    key={part.id} 
+                    className="table-row-hover cursor-pointer"
+                    style={{
+                      transform: hoveredRow === part.id ? 'translateX(-4px)' : 'translateX(0)',
+                      transition: 'transform 0.2s ease'
+                    }}
+                    onMouseEnter={() => setHoveredRow(part.id)}
+                    onMouseLeave={() => setHoveredRow(null)}
+                    onClick={() => openDetail(part)}
+                  >
+                    <TableCell className="font-mono text-sm text-muted-foreground">
+                      {index + 1}
+                    </TableCell>
                     <TableCell className="font-mono text-sm">{part.internalCode}</TableCell>
                     <TableCell className="font-mono text-sm font-medium text-primary">{part.partNumber}</TableCell>
                     <TableCell>{part.model}</TableCell>
@@ -187,11 +213,17 @@ export function SpareParts() {
                       {part.quantity}
                     </TableCell>
                     <TableCell>
-                      <div className="hidden gap-1 group-hover:flex">
+                      <div 
+                        className="flex gap-1 justify-end"
+                        style={{
+                          opacity: hoveredRow === part.id ? 1 : 0,
+                          transition: 'opacity 0.15s ease'
+                        }}
+                      >
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => openEdit(part)}
+                          onClick={(e) => openEdit(e, part)}
                           className="h-7 w-7"
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -199,7 +231,7 @@ export function SpareParts() {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => setDeleteConfirm(part)}
+                          onClick={(e) => handleDelete(e, part)}
                           className="h-7 w-7 text-destructive hover:text-destructive"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -213,6 +245,61 @@ export function SpareParts() {
           </Table>
         </CardContent>
       </Card>
+      
+      {/* Detail Modal */}
+      <Dialog open={modalMode === 'detail'} onOpenChange={closeModal}>
+        <DialogContent className="max-w-md">
+          <div className="absolute right-4 top-4">
+            <Button variant="ghost" size="icon-sm" onClick={closeModal} className="h-7 w-7">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          {selectedPart && (
+            <div className="space-y-4 pt-2">
+              {/* Header */}
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="font-mono text-lg font-semibold text-primary">
+                    {selectedPart.partNumber}
+                  </span>
+                  <span className="text-sm text-muted-foreground font-mono">
+                    {selectedPart.internalCode}
+                  </span>
+                </div>
+                <p className="text-sm text-card-foreground">{selectedPart.description}</p>
+              </div>
+              
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground mb-0.5">Model</p>
+                  <p className="font-medium">{selectedPart.model || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-0.5">Equipment</p>
+                  <p className="font-medium">{selectedPart.equipment || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-0.5">Measurement</p>
+                  <p className="font-medium">{selectedPart.measurement || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-0.5">Price</p>
+                  <p className="font-medium">${selectedPart.price.toFixed(2)}</p>
+                </div>
+              </div>
+              
+              {/* Current Quantity */}
+              <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-4 py-3">
+                <span className="text-sm text-muted-foreground">Current Quantity</span>
+                <span className="font-mono text-xl font-bold text-primary">
+                  {selectedPart.quantity}
+                </span>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       
       {/* Create/Edit Modal */}
       <Dialog open={modalMode === 'create' || modalMode === 'edit'} onOpenChange={closeModal}>
@@ -234,7 +321,7 @@ export function SpareParts() {
                     id="internalCode"
                     value={formData.internalCode}
                     onChange={(e) => setFormData({ ...formData, internalCode: e.target.value })}
-                    placeholder="INT-001"
+                    placeholder="Enter internal code..."
                   />
                 </div>
                 <div className="grid gap-2">
@@ -243,7 +330,7 @@ export function SpareParts() {
                     id="partNumber"
                     value={formData.partNumber}
                     onChange={(e) => setFormData({ ...formData, partNumber: e.target.value })}
-                    placeholder="COT-001"
+                    placeholder="Enter part number..."
                     required
                   />
                 </div>
@@ -256,7 +343,7 @@ export function SpareParts() {
                     id="model"
                     value={formData.model}
                     onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                    placeholder="CAT 320D"
+                    placeholder="Enter model..."
                   />
                 </div>
                 <div className="grid gap-2">
@@ -265,7 +352,7 @@ export function SpareParts() {
                     id="equipment"
                     value={formData.equipment}
                     onChange={(e) => setFormData({ ...formData, equipment: e.target.value })}
-                    placeholder="Excavadora"
+                    placeholder="Enter equipment..."
                   />
                 </div>
               </div>
@@ -276,7 +363,7 @@ export function SpareParts() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Filtro de aceite hidraulico"
+                  placeholder="Enter description..."
                   required
                 />
               </div>
@@ -288,7 +375,7 @@ export function SpareParts() {
                     id="measurement"
                     value={formData.measurement}
                     onChange={(e) => setFormData({ ...formData, measurement: e.target.value })}
-                    placeholder="Unidad"
+                    placeholder="Enter measurement..."
                   />
                 </div>
                 <div className="grid gap-2">
@@ -300,7 +387,7 @@ export function SpareParts() {
                     min="0"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="0.00"
+                    placeholder="Enter price..."
                   />
                 </div>
               </div>
@@ -330,7 +417,7 @@ export function SpareParts() {
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button variant="destructive" onClick={confirmDelete}>
               Delete
             </Button>
           </DialogFooter>
