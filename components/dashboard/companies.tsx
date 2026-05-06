@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Plus, Search, Pencil, Trash2, Eye } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,17 +34,25 @@ const statusColors: Record<ActivityStatus, string> = {
   inactive: 'bg-status-inactive',
 }
 
+const statusLabels: Record<ActivityStatus, string> = {
+  active: 'Active',
+  warning: 'Moderate',
+  inactive: 'Inactive',
+}
+
 export function Companies() {
   const { companies, addCompany, updateCompany, deleteCompany } = useDashboardStore()
   const [search, setSearch] = useState('')
   const [modalMode, setModalMode] = useState<ModalMode>(null)
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<Company | null>(null)
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   
   // Form state
   const [formData, setFormData] = useState({
     name: '',
     ruc: '',
+    address: '',
     contact: '',
     phone: '',
     email: '',
@@ -61,15 +69,17 @@ export function Companies() {
   }, [companies, search])
   
   const openCreate = () => {
-    setFormData({ name: '', ruc: '', contact: '', phone: '', email: '' })
+    setFormData({ name: '', ruc: '', address: '', contact: '', phone: '', email: '' })
     setModalMode('create')
   }
   
-  const openEdit = (company: Company) => {
+  const openEdit = (company: Company, e: React.MouseEvent) => {
+    e.stopPropagation()
     setSelectedCompany(company)
     setFormData({
       name: company.name,
       ruc: company.ruc,
+      address: company.address,
       contact: company.contact,
       phone: company.phone,
       email: company.email,
@@ -99,11 +109,24 @@ export function Companies() {
     closeModal()
   }
   
-  const handleDelete = () => {
+  const handleDelete = (company: Company, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setDeleteConfirm(company)
+  }
+  
+  const confirmDelete = () => {
     if (deleteConfirm) {
       deleteCompany(deleteConfirm.id)
       setDeleteConfirm(null)
     }
+  }
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
   }
   
   return (
@@ -145,64 +168,71 @@ export function Companies() {
               <TableRow>
                 <TableHead>Company Name</TableHead>
                 <TableHead>RUC</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Phone</TableHead>
+                <TableHead>Address</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead className="w-10"></TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead className="w-24"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredCompanies.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                     No companies found
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredCompanies.map((company) => {
                   const status = getActivityStatus(company.lastActivity)
+                  const isHovered = hoveredRow === company.id
                   return (
-                    <TableRow key={company.id} className="table-row-hover group">
+                    <TableRow 
+                      key={company.id} 
+                      className={cn(
+                        "table-row-hover cursor-pointer",
+                        isHovered && "table-row-slide"
+                      )}
+                      onMouseEnter={() => setHoveredRow(company.id)}
+                      onMouseLeave={() => setHoveredRow(null)}
+                      onClick={() => openView(company)}
+                    >
                       <TableCell className="font-medium text-card-foreground">{company.name}</TableCell>
                       <TableCell className="font-mono text-sm">{company.ruc}</TableCell>
-                      <TableCell>{company.contact}</TableCell>
-                      <TableCell>{company.phone}</TableCell>
-                      <TableCell>{company.email}</TableCell>
+                      <TableCell className="max-w-[200px] truncate">{company.address || '-'}</TableCell>
+                      <TableCell>{company.email || '-'}</TableCell>
+                      <TableCell>{company.phone || '-'}</TableCell>
+                      <TableCell>{company.contact || '-'}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={cn(
-                              'h-2.5 w-2.5 rounded-full',
-                              statusColors[status]
-                            )}
-                            title={`Activity: ${status}`}
-                          />
-                          <div className="hidden gap-1 group-hover:flex">
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => openView(company)}
-                              className="h-7 w-7"
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => openEdit(company)}
-                              className="h-7 w-7"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => setDeleteConfirm(company)}
-                              className="h-7 w-7 text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
+                        <div className="flex items-center justify-end gap-2">
+                          {isHovered ? (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => openEdit(company, e)}
+                                className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => handleDelete(company, e)}
+                                className="h-8 px-2 text-muted-foreground hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <span
+                              className={cn(
+                                'h-2.5 w-2.5 rounded-full',
+                                statusColors[status]
+                              )}
+                              title={`Activity: ${statusLabels[status]}`}
+                            />
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -228,41 +258,32 @@ export function Companies() {
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="ruc">RUC *</Label>
-                <Input
-                  id="ruc"
-                  value={formData.ruc}
-                  onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
-                  placeholder="20123456789"
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
                 <Label htmlFor="name">Company Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Company Name S.A."
+                  placeholder="Enter company name"
                   required
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="contact">Contact Person</Label>
+                <Label htmlFor="ruc">RUC *</Label>
                 <Input
-                  id="contact"
-                  value={formData.contact}
-                  onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                  placeholder="John Doe"
+                  id="ruc"
+                  value={formData.ruc}
+                  onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
+                  placeholder="Enter RUC"
+                  required
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="address">Address</Label>
                 <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+51 999 888 777"
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  placeholder="Enter address"
                 />
               </div>
               <div className="grid gap-2">
@@ -272,7 +293,25 @@ export function Companies() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="contact@company.com"
+                  placeholder="Enter email"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="Enter phone"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="contact">Contact</Label>
+                <Input
+                  id="contact"
+                  value={formData.contact}
+                  onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                  placeholder="Enter contact name"
                 />
               </div>
             </div>
@@ -288,70 +327,63 @@ export function Companies() {
         </DialogContent>
       </Dialog>
       
-      {/* View Modal */}
+      {/* View Modal - Redesigned */}
       <Dialog open={modalMode === 'view'} onOpenChange={closeModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Company Details</DialogTitle>
-          </DialogHeader>
-          {selectedCompany && (
-            <div className="space-y-4 py-4">
-              <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                  <span className="text-2xl font-bold text-primary">
-                    {selectedCompany.name.charAt(0)}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-card-foreground">{selectedCompany.name}</h3>
-                  <p className="font-mono text-sm text-muted-foreground">{selectedCompany.ruc}</p>
-                </div>
-              </div>
-              
-              <div className="grid gap-3 rounded-lg border border-border bg-muted/50 p-4">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Contact</span>
-                  <span className="text-sm font-medium text-card-foreground">{selectedCompany.contact || '-'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Phone</span>
-                  <span className="text-sm font-medium text-card-foreground">{selectedCompany.phone || '-'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Email</span>
-                  <span className="text-sm font-medium text-card-foreground">{selectedCompany.email || '-'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <div className="flex items-center gap-2">
+        <DialogContent className="sm:max-w-md">
+          <button
+            onClick={closeModal}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </button>
+          {selectedCompany && (() => {
+            const status = getActivityStatus(selectedCompany.lastActivity)
+            return (
+              <div className="space-y-4 pt-2">
+                {/* Header with Company Name and Status */}
+                <div className="flex items-start justify-between pr-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-card-foreground">{selectedCompany.name}</h2>
+                    <p className="font-mono text-sm text-muted-foreground">{selectedCompany.ruc}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
                     <span
                       className={cn(
-                        'h-2 w-2 rounded-full',
-                        statusColors[getActivityStatus(selectedCompany.lastActivity)]
+                        'h-3 w-3 rounded-full',
+                        statusColors[status]
                       )}
                     />
-                    <span className="text-sm font-medium capitalize text-card-foreground">
-                      {getActivityStatus(selectedCompany.lastActivity)}
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(selectedCompany.lastActivity)}
                     </span>
                   </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Last Activity</span>
-                  <span className="text-sm font-medium text-card-foreground">
-                    {selectedCompany.lastActivity.toLocaleDateString()}
-                  </span>
+                
+                {/* Company Details */}
+                <div className="grid gap-3 rounded-lg border border-border bg-muted/30 p-4">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Address</span>
+                    <span className="text-sm font-medium text-card-foreground text-right max-w-[200px]">
+                      {selectedCompany.address || '-'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Email</span>
+                    <span className="text-sm font-medium text-card-foreground">{selectedCompany.email || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Phone</span>
+                    <span className="text-sm font-medium text-card-foreground">{selectedCompany.phone || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Contact</span>
+                    <span className="text-sm font-medium text-card-foreground">{selectedCompany.contact || '-'}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={closeModal}>
-              Close
-            </Button>
-            <Button onClick={() => selectedCompany && openEdit(selectedCompany)}>
-              Edit
-            </Button>
-          </DialogFooter>
+            )
+          })()}
         </DialogContent>
       </Dialog>
       
@@ -368,7 +400,7 @@ export function Companies() {
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button variant="destructive" onClick={confirmDelete}>
               Delete
             </Button>
           </DialogFooter>

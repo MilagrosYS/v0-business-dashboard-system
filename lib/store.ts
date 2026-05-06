@@ -11,6 +11,7 @@ const sampleCompanies: Company[] = [
     id: generateId(),
     name: 'Construcciones ABC S.A.',
     ruc: '20123456789',
+    address: 'Av. Industrial 1234, Lima',
     contact: 'Juan Perez',
     phone: '+51 999 888 777',
     email: 'contacto@abc.com',
@@ -21,6 +22,7 @@ const sampleCompanies: Company[] = [
     id: generateId(),
     name: 'Minera del Norte',
     ruc: '20987654321',
+    address: 'Carretera Panamericana Norte Km 45, Trujillo',
     contact: 'Maria Garcia',
     phone: '+51 888 777 666',
     email: 'compras@mineranorte.com',
@@ -31,6 +33,7 @@ const sampleCompanies: Company[] = [
     id: generateId(),
     name: 'Transportes Rapidos',
     ruc: '20111222333',
+    address: 'Jr. Los Transportistas 567, Callao',
     contact: 'Carlos Lopez',
     phone: '+51 777 666 555',
     email: 'info@transportesrapidos.pe',
@@ -184,8 +187,23 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   },
   systemSettings: {
     igvPercentage: 18,
-    currency: '$',
+    currency: 'USD',
+    exchangeRate: 3.75,
     sellerName: 'Luis Villavicencio',
+    businessInfo: {
+      companyName: 'VyR Maquinaria e Inversiones',
+      ruc: '20607951871',
+      addressArequipa: 'Ciudad Blanca N-3 Paucarpata',
+      addressLima: 'Asoc. Viv. Casa Huerta San Pedro Mz B Lote 14 Puente Piedra',
+      email: 'maquinariainversionesvr@gmail.com',
+      phone: '941113500',
+      logo: '',
+    },
+    bankAccounts: [
+      { bankName: 'BCP', accountNumber: '215-05782429-1-33', cci: '00221510578242913329' },
+      { bankName: 'BANCO CONTINENTAL', accountNumber: '0011-0222-0200563856' },
+      { bankName: 'BANCO DE LA NACIÓN (DETRACCIÓN)', accountNumber: '109025518' },
+    ],
   },
   
   // Company methods

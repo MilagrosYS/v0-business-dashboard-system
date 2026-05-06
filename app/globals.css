@@ -116,9 +116,22 @@
 }
 
 /* Table row hover with subtle glow */
+.table-row-hover {
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
 .table-row-hover:hover {
   background: oklch(0.96 0.01 250);
   box-shadow: inset 0 0 0 1px var(--glow);
+}
+
+/* Table row slide animation for action buttons */
+.table-row-slide {
+  transition: transform 0.2s ease;
+}
+
+.table-row-slide:hover {
+  transform: translateX(-4px);
 }
 
 /* Scrollbar styling */
