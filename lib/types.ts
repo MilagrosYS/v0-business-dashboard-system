@@ -84,10 +84,29 @@ export interface Quotation {
 }
 
 // Settings types
+export interface BusinessInfo {
+  companyName: string
+  ruc: string
+  addressArequipa: string
+  addressLima: string
+  email: string
+  phone: string
+  logo: string // base64 or URL
+}
+
+export interface BankAccount {
+  bankName: string
+  accountNumber: string
+  cci?: string
+}
+
 export interface SystemSettings {
   igvPercentage: number
   currency: string
+  exchangeRate: number // PEN per USD
   sellerName: string
+  businessInfo: BusinessInfo
+  bankAccounts: BankAccount[]
 }
 
 export interface UserProfile {

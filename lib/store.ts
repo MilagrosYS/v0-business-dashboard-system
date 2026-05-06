@@ -187,8 +187,23 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   },
   systemSettings: {
     igvPercentage: 18,
-    currency: '$',
+    currency: 'USD',
+    exchangeRate: 3.75,
     sellerName: 'Luis Villavicencio',
+    businessInfo: {
+      companyName: 'VyR Maquinaria e Inversiones',
+      ruc: '20607951871',
+      addressArequipa: 'Ciudad Blanca N-3 Paucarpata',
+      addressLima: 'Asoc. Viv. Casa Huerta San Pedro Mz B Lote 14 Puente Piedra',
+      email: 'maquinariainversionesvr@gmail.com',
+      phone: '941113500',
+      logo: '',
+    },
+    bankAccounts: [
+      { bankName: 'BCP', accountNumber: '215-05782429-1-33', cci: '00221510578242913329' },
+      { bankName: 'BANCO CONTINENTAL', accountNumber: '0011-0222-0200563856' },
+      { bankName: 'BANCO DE LA NACIÓN (DETRACCIÓN)', accountNumber: '109025518' },
+    ],
   },
   
   // Company methods
