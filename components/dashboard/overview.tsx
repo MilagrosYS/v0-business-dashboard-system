@@ -16,36 +16,36 @@ export function Overview() {
   
   const stats = [
     {
-      title: 'Total Companies',
+      title: 'Total Empresas',
       value: companies.length,
       icon: Building2,
-      description: 'Active clients',
+      description: 'Clientes activos',
     },
     {
-      title: 'Spare Parts',
+      title: 'Repuestos',
       value: spareParts.length,
       icon: Package,
-      description: 'Product catalog',
+      description: 'Catalogo de productos',
     },
     {
-      title: 'Total Stock',
+      title: 'Stock Total',
       value: totalStock.toLocaleString(),
       icon: Warehouse,
-      description: 'Units in inventory',
+      description: 'Unidades en inventario',
     },
     {
-      title: 'Inventory Value',
+      title: 'Valor del Inventario',
       value: `$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
       icon: TrendingUp,
-      description: 'Total estimated',
+      description: 'Total estimado',
     },
   ]
   
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground">Dashboard Overview</h2>
-        <p className="text-muted-foreground">Welcome to your spare parts management system</p>
+        <h2 className="text-2xl font-semibold text-foreground">Panel Principal</h2>
+        <p className="text-muted-foreground">Bienvenido al sistema de gestion de repuestos</p>
       </div>
       
       {/* Stats Grid */}
@@ -74,7 +74,7 @@ export function Overview() {
         {/* Low Stock Alert */}
         <Card className="card-hover border border-border bg-card shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg text-card-foreground">Stock Alerts</CardTitle>
+            <CardTitle className="text-lg text-card-foreground">Alertas de Stock</CardTitle>
           </CardHeader>
           <CardContent>
             {lowStockCount > 0 ? (
@@ -83,8 +83,8 @@ export function Overview() {
                   <Warehouse className="h-5 w-5 text-status-warning" />
                 </div>
                 <div>
-                  <p className="font-medium text-card-foreground">{lowStockCount} items with low stock</p>
-                  <p className="text-sm text-muted-foreground">Review inventory control</p>
+                  <p className="font-medium text-card-foreground">{lowStockCount} items con stock bajo</p>
+                  <p className="text-sm text-muted-foreground">Revisar control de inventario</p>
                 </div>
               </div>
             ) : (
@@ -93,8 +93,8 @@ export function Overview() {
                   <Warehouse className="h-5 w-5 text-status-active" />
                 </div>
                 <div>
-                  <p className="font-medium text-card-foreground">Stock levels healthy</p>
-                  <p className="text-sm text-muted-foreground">All items above minimum</p>
+                  <p className="font-medium text-card-foreground">Niveles de stock saludables</p>
+                  <p className="text-sm text-muted-foreground">Todos los items sobre el minimo</p>
                 </div>
               </div>
             )}
@@ -104,7 +104,7 @@ export function Overview() {
         {/* Recent Activity */}
         <Card className="card-hover border border-border bg-card shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg text-card-foreground">Recent Movements</CardTitle>
+            <CardTitle className="text-lg text-card-foreground">Movimientos Recientes</CardTitle>
           </CardHeader>
           <CardContent>
             {recentMovements.length > 0 ? (
@@ -127,7 +127,7 @@ export function Overview() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground">No recent movements</p>
+              <p className="text-sm text-muted-foreground">Sin movimientos recientes</p>
             )}
           </CardContent>
         </Card>

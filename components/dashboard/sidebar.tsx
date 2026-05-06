@@ -9,12 +9,12 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'companies', label: 'Companies', icon: Building2 },
-  { id: 'parts', label: 'Spare Parts', icon: Package },
-  { id: 'inventory', label: 'Inventory', icon: Warehouse },
-  { id: 'quotations', label: 'Quotations', icon: FileText },
-  { id: 'history', label: 'History', icon: History },
+  { id: 'overview', label: 'Panel Principal', icon: LayoutDashboard },
+  { id: 'companies', label: 'Empresas', icon: Building2 },
+  { id: 'parts', label: 'Repuestos', icon: Package },
+  { id: 'inventory', label: 'Inventario', icon: Warehouse },
+  { id: 'quotations', label: 'Cotizaciones', icon: FileText },
+  { id: 'history', label: 'Historial', icon: History },
 ]
 
 export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
@@ -27,7 +27,7 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
         </div>
         <div>
           <h1 className="text-sm font-semibold text-sidebar-foreground">PartsControl</h1>
-          <p className="text-xs text-sidebar-muted">Business Dashboard</p>
+          <p className="text-xs text-sidebar-muted">Panel de Control</p>
         </div>
       </div>
       
@@ -61,7 +61,7 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
       {/* Footer */}
       <div className="absolute bottom-0 left-0 right-0 border-t border-sidebar-border p-4">
         <p className="text-center text-xs text-sidebar-muted">
-          Spare Parts Management v1.0
+          Gestion de Repuestos v1.0
         </p>
       </div>
     </aside>

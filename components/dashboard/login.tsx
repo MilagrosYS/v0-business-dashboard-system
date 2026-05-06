@@ -27,7 +27,7 @@ export function Login() {
     const success = login(username, password)
     
     if (!success) {
-      setError('Invalid username or password')
+      setError('Usuario o contrasena incorrectos')
     }
     
     setIsLoading(false)
@@ -50,7 +50,7 @@ export function Login() {
           <div>
             <CardTitle className="text-2xl font-bold">PartsControl</CardTitle>
             <p className="mt-2 text-sm text-muted-foreground">
-              Sign in to your account to continue
+              Inicia sesion para continuar
             </p>
           </div>
         </CardHeader>
@@ -59,12 +59,12 @@ export function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="username" className="text-sm font-medium">
-                Username
+                Usuario
               </label>
               <Input
                 id="username"
                 type="text"
-                placeholder="Enter your username"
+                placeholder="Ingresa tu usuario"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -73,13 +73,13 @@ export function Login() {
             
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
-                Password
+                Contrasena
               </label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
+                  placeholder="Ingresa tu contrasena"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -114,12 +114,12 @@ export function Login() {
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Signing in...
+                  Iniciando sesion...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
                   <LogIn className="h-4 w-4" />
-                  Sign In
+                  Iniciar Sesion
                 </span>
               )}
             </Button>
@@ -128,7 +128,7 @@ export function Login() {
           {/* Demo credentials hint */}
           <div className="mt-6 rounded-lg bg-muted/50 p-4">
             <p className="text-center text-xs text-muted-foreground">
-              Demo credentials: <span className="font-mono font-medium">admin</span> / <span className="font-mono font-medium">admin123</span>
+              Credenciales de prueba: <span className="font-mono font-medium">admin</span> / <span className="font-mono font-medium">admin123</span>
             </p>
           </div>
         </CardContent>

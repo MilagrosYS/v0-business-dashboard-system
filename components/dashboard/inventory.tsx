@@ -18,7 +18,7 @@ import {
   DialogContent,
 } from '@/components/ui/dialog'
 import { useDashboardStore } from '@/lib/store'
-import { SparePart, StockMovement } from '@/lib/types'
+import { SparePart, StockMovement, normalizePartNumber } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 type ModalMode = 'detail' | null
@@ -44,11 +44,11 @@ function getStockStatusColor(status: string) {
 
 function getStockStatusText(status: string) {
   switch (status) {
-    case 'critical': return 'Critical'
-    case 'warning': return 'Low Stock'
-    case 'approaching': return 'Approaching Minimum'
-    case 'good': return 'Good'
-    default: return 'Unknown'
+    case 'critical': return 'Critico'
+    case 'warning': return 'Stock Bajo'
+    case 'approaching': return 'Cerca del Minimo'
+    case 'good': return 'Bueno'
+    default: return 'Desconocido'
   }
 }
 
@@ -65,10 +65,11 @@ export function Inventory() {
   const filteredParts = useMemo(() => {
     if (!search) return spareParts
     const searchLower = search.toLowerCase()
+    const searchNormalized = normalizePartNumber(search).toLowerCase()
     return spareParts.filter(
       (p) =>
-        p.partNumber.toLowerCase().includes(searchLower) ||
-        p.internalCode.toLowerCase().includes(searchLower) ||
+        normalizePartNumber(p.partNumber).toLowerCase().includes(searchNormalized) ||
+        normalizePartNumber(p.internalCode).toLowerCase().includes(searchNormalized) ||
         p.description.toLowerCase().includes(searchLower)
     )
   }, [spareParts, search])
@@ -152,8 +153,8 @@ export function Inventory() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground">Inventory Control</h2>
-        <p className="text-muted-foreground">Manage stock levels and movements</p>
+        <h2 className="text-2xl font-semibold text-foreground">Control de Inventario</h2>
+        <p className="text-muted-foreground">Gestiona niveles de stock y movimientos</p>
       </div>
       
       {/* Search */}
@@ -162,7 +163,7 @@ export function Inventory() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by part number, internal code, or description..."
+              placeholder="Buscar por numero de parte, codigo interno o descripcion..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
@@ -174,24 +175,24 @@ export function Inventory() {
       {/* Table */}
       <Card className="border border-border bg-card shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg text-card-foreground">Stock Overview</CardTitle>
+          <CardTitle className="text-lg text-card-foreground">Vista General de Stock</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-16">Item</TableHead>
-                <TableHead>Internal Code</TableHead>
-                <TableHead>Part Number</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Current Stock</TableHead>
+                <TableHead>Codigo Interno</TableHead>
+                <TableHead>Numero de Parte</TableHead>
+                <TableHead>Descripcion</TableHead>
+                <TableHead className="text-right">Stock Actual</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredParts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                    No inventory items found
+                    No se encontraron items de inventario
                   </TableCell>
                 </TableRow>
               ) : (
@@ -261,13 +262,13 @@ export function Inventory() {
                 {/* Stock Info */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-lg border border-border bg-muted/50 px-3 py-2">
-                    <p className="text-xs text-muted-foreground mb-0.5">Current Stock</p>
+                    <p className="text-xs text-muted-foreground mb-0.5">Stock Actual</p>
                     <p className="font-mono text-xl font-bold text-primary">
                       {selectedPart.quantity}
                     </p>
                   </div>
                   <div className="rounded-lg border border-border bg-muted/50 px-3 py-2">
-                    <p className="text-xs text-muted-foreground mb-0.5">Minimum Stock</p>
+                    <p className="text-xs text-muted-foreground mb-0.5">Stock Minimo</p>
                     <p className="font-mono text-xl font-bold text-muted-foreground">
                       {MINIMUM_STOCK}
                     </p>
@@ -298,7 +299,7 @@ export function Inventory() {
                   }}
                 >
                   <Plus className="h-4 w-4" />
-                  Add Stock
+                  Agregar Stock
                 </Button>
                 <Button
                   variant="outline"
@@ -311,7 +312,7 @@ export function Inventory() {
                   disabled={selectedPart.quantity === 0}
                 >
                   <Minus className="h-4 w-4" />
-                  Remove Stock
+                  Retirar Stock
                 </Button>
               </div>
               
@@ -325,7 +326,7 @@ export function Inventory() {
                       max={addRemoveMode === 'remove' ? selectedPart.quantity : undefined}
                       value={addRemoveQty}
                       onChange={(e) => setAddRemoveQty(e.target.value)}
-                      placeholder={`Quantity to ${addRemoveMode}...`}
+                      placeholder={`Cantidad a ${addRemoveMode === 'add' ? 'agregar' : 'retirar'}...`}
                       className="flex-1 h-8"
                       autoFocus
                     />
@@ -335,7 +336,7 @@ export function Inventory() {
                       onClick={addRemoveMode === 'add' ? handleAddStock : handleRemoveStock}
                       disabled={!addRemoveQty || parseInt(addRemoveQty) <= 0}
                     >
-                      Confirm
+                      Confirmar
                     </Button>
                     <Button
                       variant="ghost"
@@ -346,7 +347,7 @@ export function Inventory() {
                         setAddRemoveQty('')
                       }}
                     >
-                      Cancel
+                      Cancelar
                     </Button>
                   </div>
                 </div>
@@ -354,9 +355,9 @@ export function Inventory() {
               
               {/* Movement History */}
               <div>
-                <h4 className="mb-2 text-sm font-medium text-card-foreground">Movement History</h4>
+                <h4 className="mb-2 text-sm font-medium text-card-foreground">Historial de Movimientos</h4>
                 {movements.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No movements recorded</p>
+                  <p className="text-sm text-muted-foreground">Sin movimientos registrados</p>
                 ) : (
                   <div className="max-h-40 space-y-1.5 overflow-y-auto">
                     {movements.map((movement) => (

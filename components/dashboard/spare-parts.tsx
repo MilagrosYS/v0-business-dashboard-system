@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { useDashboardStore } from '@/lib/store'
-import { SparePart } from '@/lib/types'
+import { SparePart, normalizePartNumber } from '@/lib/types'
 
 type ModalMode = 'create' | 'edit' | 'detail' | null
 
@@ -46,13 +46,29 @@ export function SpareParts() {
     price: '',
   })
   
+  // Check if form has required data and has changed (for edit mode)
+  const isFormValid = formData.partNumber.trim() !== '' && formData.description.trim() !== ''
+  const hasChanges = modalMode === 'create' ? true : (
+    selectedPart && (
+      formData.internalCode !== selectedPart.internalCode ||
+      formData.partNumber !== selectedPart.partNumber ||
+      formData.model !== selectedPart.model ||
+      formData.equipment !== selectedPart.equipment ||
+      formData.description !== selectedPart.description ||
+      formData.measurement !== selectedPart.measurement ||
+      formData.price !== selectedPart.price.toString()
+    )
+  )
+  const canSubmit = isFormValid && hasChanges
+  
   const filteredParts = useMemo(() => {
     if (!search) return spareParts
     const searchLower = search.toLowerCase()
+    const searchNormalized = normalizePartNumber(search).toLowerCase()
     return spareParts.filter(
       (p) =>
-        p.partNumber.toLowerCase().includes(searchLower) ||
-        p.internalCode.toLowerCase().includes(searchLower) ||
+        normalizePartNumber(p.partNumber).toLowerCase().includes(searchNormalized) ||
+        normalizePartNumber(p.internalCode).toLowerCase().includes(searchNormalized) ||
         p.description.toLowerCase().includes(searchLower)
     )
   }, [spareParts, search])
@@ -132,12 +148,12 @@ export function SpareParts() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground">Spare Parts</h2>
-          <p className="text-muted-foreground">Product catalog management</p>
+          <h2 className="text-2xl font-semibold text-foreground">Repuestos</h2>
+          <p className="text-muted-foreground">Gestion del catalogo de productos</p>
         </div>
         <Button onClick={openCreate} className="gap-2">
           <Plus className="h-4 w-4" />
-          New Part
+          Nuevo Repuesto
         </Button>
       </div>
       
@@ -147,7 +163,7 @@ export function SpareParts() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by part number, internal code, or description..."
+              placeholder="Buscar por numero de parte, codigo interno o descripcion..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
@@ -159,21 +175,21 @@ export function SpareParts() {
       {/* Table */}
       <Card className="border border-border bg-card shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg text-card-foreground">Parts Catalog</CardTitle>
+          <CardTitle className="text-lg text-card-foreground">Catalogo de Repuestos</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-16">Item</TableHead>
-                <TableHead>Internal Code</TableHead>
-                <TableHead>Part Number</TableHead>
-                <TableHead>Model</TableHead>
-                <TableHead>Equipment</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Measurement</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
+                <TableHead>Codigo Interno</TableHead>
+                <TableHead>Numero de Parte</TableHead>
+                <TableHead>Modelo</TableHead>
+                <TableHead>Equipo</TableHead>
+                <TableHead>Descripcion</TableHead>
+                <TableHead>Medida</TableHead>
+                <TableHead className="text-right">Precio</TableHead>
+                <TableHead className="text-right">Cantidad</TableHead>
                 <TableHead className="w-20"></TableHead>
               </TableRow>
             </TableHeader>
@@ -181,7 +197,7 @@ export function SpareParts() {
               {filteredParts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
-                    No spare parts found
+                    No se encontraron repuestos
                   </TableCell>
                 </TableRow>
               ) : (
@@ -272,26 +288,26 @@ export function SpareParts() {
               {/* Details Grid */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground mb-0.5">Model</p>
+                  <p className="text-muted-foreground mb-0.5">Modelo</p>
                   <p className="font-medium">{selectedPart.model || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground mb-0.5">Equipment</p>
+                  <p className="text-muted-foreground mb-0.5">Equipo</p>
                   <p className="font-medium">{selectedPart.equipment || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground mb-0.5">Measurement</p>
+                  <p className="text-muted-foreground mb-0.5">Medida</p>
                   <p className="font-medium">{selectedPart.measurement || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground mb-0.5">Price</p>
+                  <p className="text-muted-foreground mb-0.5">Precio</p>
                   <p className="font-medium">${selectedPart.price.toFixed(2)}</p>
                 </div>
               </div>
               
               {/* Current Quantity */}
               <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-4 py-3">
-                <span className="text-sm text-muted-foreground">Current Quantity</span>
+                <span className="text-sm text-muted-foreground">Cantidad Actual</span>
                 <span className="font-mono text-xl font-bold text-primary">
                   {selectedPart.quantity}
                 </span>
@@ -305,32 +321,32 @@ export function SpareParts() {
       <Dialog open={modalMode === 'create' || modalMode === 'edit'} onOpenChange={closeModal}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{modalMode === 'create' ? 'New Spare Part' : 'Edit Spare Part'}</DialogTitle>
+            <DialogTitle>{modalMode === 'create' ? 'Nuevo Repuesto' : 'Editar Repuesto'}</DialogTitle>
             <DialogDescription>
               {modalMode === 'create' 
-                ? 'Add a new spare part to your catalog.' 
-                : 'Update the spare part information.'}
+                ? 'Agrega un nuevo repuesto a tu catalogo.' 
+                : 'Actualiza la informacion del repuesto.'}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="internalCode">Internal Code</Label>
+                  <Label htmlFor="internalCode">Codigo Interno</Label>
                   <Input
                     id="internalCode"
                     value={formData.internalCode}
                     onChange={(e) => setFormData({ ...formData, internalCode: e.target.value })}
-                    placeholder="Enter internal code..."
+                    placeholder="Ingresa codigo interno..."
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="partNumber">Part Number *</Label>
+                  <Label htmlFor="partNumber">Numero de Parte *</Label>
                   <Input
                     id="partNumber"
                     value={formData.partNumber}
                     onChange={(e) => setFormData({ ...formData, partNumber: e.target.value })}
-                    placeholder="Enter part number..."
+                    placeholder="Ingresa numero de parte..."
                     required
                   />
                 </div>
@@ -338,48 +354,48 @@ export function SpareParts() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="model">Model</Label>
+                  <Label htmlFor="model">Modelo</Label>
                   <Input
                     id="model"
                     value={formData.model}
                     onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                    placeholder="Enter model..."
+                    placeholder="Ingresa modelo..."
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="equipment">Equipment</Label>
+                  <Label htmlFor="equipment">Equipo</Label>
                   <Input
                     id="equipment"
                     value={formData.equipment}
                     onChange={(e) => setFormData({ ...formData, equipment: e.target.value })}
-                    placeholder="Enter equipment..."
+                    placeholder="Ingresa equipo..."
                   />
                 </div>
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="description">Description *</Label>
+                <Label htmlFor="description">Descripcion *</Label>
                 <Input
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Enter description..."
+                  placeholder="Ingresa descripcion..."
                   required
                 />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="measurement">Measurement</Label>
+                  <Label htmlFor="measurement">Medida</Label>
                   <Input
                     id="measurement"
                     value={formData.measurement}
                     onChange={(e) => setFormData({ ...formData, measurement: e.target.value })}
-                    placeholder="Enter measurement..."
+                    placeholder="Ingresa medida..."
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="price">Price ($)</Label>
+                  <Label htmlFor="price">Precio ($)</Label>
                   <Input
                     id="price"
                     type="number"
@@ -387,17 +403,17 @@ export function SpareParts() {
                     min="0"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="Enter price..."
+                    placeholder="Ingresa precio..."
                   />
                 </div>
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeModal}>
-                Cancel
+                Cancelar
               </Button>
-              <Button type="submit">
-                {modalMode === 'create' ? 'Create' : 'Save Changes'}
+              <Button type="submit" disabled={!canSubmit} className={!canSubmit ? 'opacity-50' : ''}>
+                {modalMode === 'create' ? 'Crear' : 'Guardar Cambios'}
               </Button>
             </DialogFooter>
           </form>
@@ -408,17 +424,17 @@ export function SpareParts() {
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Spare Part</DialogTitle>
+            <DialogTitle>Eliminar Repuesto</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {deleteConfirm?.partNumber}? This will also remove all related stock movements. This action cannot be undone.
+              Estas seguro que deseas eliminar {deleteConfirm?.partNumber}? Esto tambien eliminara todos los movimientos de stock relacionados. Esta accion no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-              Cancel
+              Cancelar
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+              Eliminar
             </Button>
           </DialogFooter>
         </DialogContent>

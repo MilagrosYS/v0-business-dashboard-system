@@ -171,19 +171,19 @@ Valid for ${quotation.validity} days
         {viewMode !== 'companies' && (
           <Button variant="ghost" size="sm" onClick={handleBack}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+            Volver
           </Button>
         )}
         <div>
           <h2 className="text-2xl font-bold text-foreground">
-            {viewMode === 'companies' && 'Quotation History'}
+            {viewMode === 'companies' && 'Historial de Cotizaciones'}
             {viewMode === 'company-detail' && selectedCompanyName}
             {viewMode === 'quotation-detail' && selectedQuotation?.quotationNumber}
           </h2>
           <p className="text-muted-foreground">
-            {viewMode === 'companies' && 'Browse quotations grouped by company'}
-            {viewMode === 'company-detail' && `${companyQuotations.length} quotation(s)`}
-            {viewMode === 'quotation-detail' && `Created on ${selectedQuotation ? new Date(selectedQuotation.createdAt).toLocaleDateString() : ''}`}
+            {viewMode === 'companies' && 'Navega cotizaciones agrupadas por empresa'}
+            {viewMode === 'company-detail' && `${companyQuotations.length} cotizacion(es)`}
+            {viewMode === 'quotation-detail' && `Creada el ${selectedQuotation ? new Date(selectedQuotation.createdAt).toLocaleDateString('es-PE') : ''}`}
           </p>
         </div>
       </div>
@@ -196,7 +196,7 @@ Valid for ${quotation.validity} days
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search by company or RUC..."
+                placeholder="Buscar por empresa o RUC..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -209,8 +209,8 @@ Valid for ${quotation.validity} days
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="mb-4 h-12 w-12 text-muted-foreground/50" />
-                <p className="text-lg font-medium text-muted-foreground">No quotations yet</p>
-                <p className="text-sm text-muted-foreground">Create your first quotation to see it here</p>
+                <p className="text-lg font-medium text-muted-foreground">Sin cotizaciones aun</p>
+                <p className="text-sm text-muted-foreground">Crea tu primera cotizacion para verla aqui</p>
               </CardContent>
             </Card>
           ) : (
@@ -236,13 +236,13 @@ Valid for ${quotation.validity} days
                     </div>
                     <div className="mt-4 grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Total Quoted</p>
+                        <p className="text-sm text-muted-foreground">Total Cotizado</p>
                         <p className="text-lg font-bold text-primary">
                           {systemSettings.currency}{group.totalAmount.toFixed(2)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Quotations</p>
+                        <p className="text-sm text-muted-foreground">Cotizaciones</p>
                         <p className="text-lg font-bold">{group.quotationCount}</p>
                       </div>
                     </div>
@@ -292,7 +292,7 @@ Valid for ${quotation.validity} days
                 size="sm"
                 onClick={() => { setDateFilter(''); setMinAmount(''); setMaxAmount(''); }}
               >
-                Clear filters
+                Limpiar filtros
               </Button>
             )}
           </div>
@@ -302,8 +302,8 @@ Valid for ${quotation.validity} days
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="mb-4 h-12 w-12 text-muted-foreground/50" />
-                <p className="text-lg font-medium text-muted-foreground">No quotations found</p>
-                <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
+                <p className="text-lg font-medium text-muted-foreground">No se encontraron cotizaciones</p>
+                <p className="text-sm text-muted-foreground">Intenta ajustar los filtros</p>
               </CardContent>
             </Card>
           ) : (
@@ -356,23 +356,23 @@ Valid for ${quotation.validity} days
           <div className="flex items-center gap-4">
             <Button onClick={() => handleExportPDF(selectedQuotation)}>
               <Download className="mr-2 h-4 w-4" />
-              Download PDF
+              Descargar PDF
             </Button>
             <Button variant="outline" onClick={() => handleDuplicate(selectedQuotation.id)}>
               <Copy className="mr-2 h-4 w-4" />
-              Duplicate
+              Duplicar
             </Button>
           </div>
           
           {/* Quotation Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Quotation Information</CardTitle>
+              <CardTitle className="text-lg">Informacion de Cotizacion</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
                 <div>
-                  <span className="text-sm text-muted-foreground">Company</span>
+                  <span className="text-sm text-muted-foreground">Empresa</span>
                   <p className="font-medium">{selectedQuotation.companyName}</p>
                 </div>
                 <div>
@@ -380,12 +380,12 @@ Valid for ${quotation.validity} days
                   <p className="font-medium">{selectedQuotation.companyRuc}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-muted-foreground">Seller</span>
+                  <span className="text-sm text-muted-foreground">Vendedor</span>
                   <p className="font-medium">{selectedQuotation.seller}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-muted-foreground">Validity</span>
-                  <p className="font-medium">{selectedQuotation.validity} days</p>
+                  <span className="text-sm text-muted-foreground">Validez</span>
+                  <p className="font-medium">{selectedQuotation.validity} dias</p>
                 </div>
               </div>
             </CardContent>
@@ -394,17 +394,17 @@ Valid for ${quotation.validity} days
           {/* Products Table */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Products</CardTitle>
+              <CardTitle className="text-lg">Productos</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Int. Code</TableHead>
-                    <TableHead>Part Number</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="text-right">Qty</TableHead>
-                    <TableHead className="text-right">Unit Price</TableHead>
+                    <TableHead>Cod. Int.</TableHead>
+                    <TableHead>Numero de Parte</TableHead>
+                    <TableHead>Descripcion</TableHead>
+                    <TableHead className="text-right">Cant.</TableHead>
+                    <TableHead className="text-right">P. Unitario</TableHead>
                     <TableHead className="text-right">Total</TableHead>
                   </TableRow>
                 </TableHeader>
