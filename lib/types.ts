@@ -53,6 +53,12 @@ export function getActivityStatus(lastActivity: Date): ActivityStatus {
   return 'inactive'
 }
 
+// Normalize part number by removing spaces for comparison
+// Allows matching "3128 3140 12" with "3128314012"
+export function normalizePartNumber(partNumber: string): string {
+  return partNumber.replace(/\s+/g, '')
+}
+
 // Quotation types
 export interface QuotationItem {
   id: string

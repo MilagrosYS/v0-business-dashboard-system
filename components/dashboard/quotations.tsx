@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, Trash2, Download, Save } from 'lucide-react'
 import { useDashboardStore } from '@/lib/store'
-import { QuotationItem, Company } from '@/lib/types'
+import { QuotationItem, Company, normalizePartNumber } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -112,12 +112,16 @@ export function Quotations() {
     setHasUnsavedChanges(true)
   }
   
-  // Handle part number change with auto-fill
+  // Handle part number change with auto-fill (supports spaces or no spaces)
   const handlePartNumberChange = (itemId: string, partNumber: string) => {
     setItems(prev => prev.map(item => {
       if (item.id !== itemId) return item
       
-      const part = spareParts.find(p => p.partNumber.toLowerCase() === partNumber.toLowerCase())
+      // Normalize the input to match with or without spaces
+      const normalizedInput = normalizePartNumber(partNumber).toLowerCase()
+      const part = spareParts.find(p => 
+        normalizePartNumber(p.partNumber).toLowerCase() === normalizedInput
+      )
       
       if (part) {
         const displayPrice = convertPrice(part.price)
@@ -138,12 +142,16 @@ export function Quotations() {
     setHasUnsavedChanges(true)
   }
   
-  // Handle internal code change with auto-fill
+  // Handle internal code change with auto-fill (supports spaces or no spaces)
   const handleInternalCodeChange = (itemId: string, internalCode: string) => {
     setItems(prev => prev.map(item => {
       if (item.id !== itemId) return item
       
-      const part = spareParts.find(p => p.internalCode.toLowerCase() === internalCode.toLowerCase())
+      // Normalize the input to match with or without spaces
+      const normalizedInput = normalizePartNumber(internalCode).toLowerCase()
+      const part = spareParts.find(p => 
+        normalizePartNumber(p.internalCode).toLowerCase() === normalizedInput
+      )
       
       if (part) {
         const displayPrice = convertPrice(part.price)
@@ -436,8 +444,8 @@ export function Quotations() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Nueva Cotización</h2>
-          <p className="text-muted-foreground">Crear cotización para cliente</p>
+          <h2 className="text-2xl font-bold text-foreground">Nueva Cotizacion</h2>
+          <p className="text-muted-foreground">Crear cotizacion para cliente</p>
         </div>
         
         {/* Currency Selector */}
@@ -471,7 +479,7 @@ export function Quotations() {
       {/* Quotation Header - Compact */}
       <div className="grid grid-cols-4 gap-4 rounded-lg border border-border bg-card p-4">
         <div>
-          <label className="text-xs font-medium text-muted-foreground">N° Cotización</label>
+          <label className="text-xs font-medium text-muted-foreground">N Cotizacion</label>
           <p className="text-base font-semibold text-primary">{quotationNumber}</p>
         </div>
         <div>

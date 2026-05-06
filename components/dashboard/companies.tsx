@@ -35,9 +35,9 @@ const statusColors: Record<ActivityStatus, string> = {
 }
 
 const statusLabels: Record<ActivityStatus, string> = {
-  active: 'Active',
-  warning: 'Moderate',
-  inactive: 'Inactive',
+  active: 'Activo',
+  warning: 'Moderado',
+  inactive: 'Inactivo',
 }
 
 export function Companies() {
@@ -57,6 +57,20 @@ export function Companies() {
     phone: '',
     email: '',
   })
+  
+  // Check if form has required data and has changed (for edit mode)
+  const isFormValid = formData.name.trim() !== '' && formData.ruc.trim() !== ''
+  const hasChanges = modalMode === 'create' ? true : (
+    selectedCompany && (
+      formData.name !== selectedCompany.name ||
+      formData.ruc !== selectedCompany.ruc ||
+      formData.address !== selectedCompany.address ||
+      formData.contact !== selectedCompany.contact ||
+      formData.phone !== selectedCompany.phone ||
+      formData.email !== selectedCompany.email
+    )
+  )
+  const canSubmit = isFormValid && hasChanges
   
   const filteredCompanies = useMemo(() => {
     if (!search) return companies
@@ -133,12 +147,12 @@ export function Companies() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground">Companies</h2>
-          <p className="text-muted-foreground">Manage your client companies</p>
+          <h2 className="text-2xl font-semibold text-foreground">Empresas</h2>
+          <p className="text-muted-foreground">Gestiona tus empresas clientes</p>
         </div>
         <Button onClick={openCreate} className="gap-2">
           <Plus className="h-4 w-4" />
-          New Company
+          Nueva Empresa
         </Button>
       </div>
       
@@ -148,7 +162,7 @@ export function Companies() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by company name or RUC..."
+              placeholder="Buscar por nombre de empresa o RUC..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
@@ -160,18 +174,18 @@ export function Companies() {
       {/* Table */}
       <Card className="border border-border bg-card shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg text-card-foreground">Company List</CardTitle>
+          <CardTitle className="text-lg text-card-foreground">Lista de Empresas</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Company Name</TableHead>
+                <TableHead>Nombre de Empresa</TableHead>
                 <TableHead>RUC</TableHead>
-                <TableHead>Address</TableHead>
+                <TableHead>Direccion</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Contact</TableHead>
+                <TableHead>Telefono</TableHead>
+                <TableHead>Contacto</TableHead>
                 <TableHead className="w-24"></TableHead>
               </TableRow>
             </TableHeader>
@@ -179,7 +193,7 @@ export function Companies() {
               {filteredCompanies.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                    No companies found
+                    No se encontraron empresas
                   </TableCell>
                 </TableRow>
               ) : (
@@ -248,22 +262,22 @@ export function Companies() {
       <Dialog open={modalMode === 'create' || modalMode === 'edit'} onOpenChange={closeModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{modalMode === 'create' ? 'New Company' : 'Edit Company'}</DialogTitle>
+            <DialogTitle>{modalMode === 'create' ? 'Nueva Empresa' : 'Editar Empresa'}</DialogTitle>
             <DialogDescription>
               {modalMode === 'create' 
-                ? 'Add a new client company to your system.' 
-                : 'Update the company information.'}
+                ? 'Agrega una nueva empresa cliente al sistema.' 
+                : 'Actualiza la informacion de la empresa.'}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">Company Name *</Label>
+                <Label htmlFor="name">Nombre de Empresa *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter company name"
+                  placeholder="Ingresa nombre de empresa"
                   required
                 />
               </div>
@@ -273,17 +287,17 @@ export function Companies() {
                   id="ruc"
                   value={formData.ruc}
                   onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
-                  placeholder="Enter RUC"
+                  placeholder="Ingresa RUC"
                   required
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">Direccion</Label>
                 <Input
                   id="address"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="Enter address"
+                  placeholder="Ingresa direccion"
                 />
               </div>
               <div className="grid gap-2">
@@ -293,34 +307,34 @@ export function Companies() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="Enter email"
+                  placeholder="Ingresa email"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">Telefono</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="Enter phone"
+                  placeholder="Ingresa telefono"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="contact">Contact</Label>
+                <Label htmlFor="contact">Contacto</Label>
                 <Input
                   id="contact"
                   value={formData.contact}
                   onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                  placeholder="Enter contact name"
+                  placeholder="Ingresa nombre de contacto"
                 />
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeModal}>
-                Cancel
+                Cancelar
               </Button>
-              <Button type="submit">
-                {modalMode === 'create' ? 'Create' : 'Save Changes'}
+              <Button type="submit" disabled={!canSubmit} className={!canSubmit ? 'opacity-50' : ''}>
+                {modalMode === 'create' ? 'Crear' : 'Guardar Cambios'}
               </Button>
             </DialogFooter>
           </form>
@@ -363,7 +377,7 @@ export function Companies() {
                 {/* Company Details */}
                 <div className="grid gap-3 rounded-lg border border-border bg-muted/30 p-4">
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Address</span>
+                    <span className="text-sm text-muted-foreground">Direccion</span>
                     <span className="text-sm font-medium text-card-foreground text-right max-w-[200px]">
                       {selectedCompany.address || '-'}
                     </span>
@@ -373,11 +387,11 @@ export function Companies() {
                     <span className="text-sm font-medium text-card-foreground">{selectedCompany.email || '-'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Phone</span>
+                    <span className="text-sm text-muted-foreground">Telefono</span>
                     <span className="text-sm font-medium text-card-foreground">{selectedCompany.phone || '-'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Contact</span>
+                    <span className="text-sm text-muted-foreground">Contacto</span>
                     <span className="text-sm font-medium text-card-foreground">{selectedCompany.contact || '-'}</span>
                   </div>
                 </div>
@@ -391,17 +405,17 @@ export function Companies() {
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Company</DialogTitle>
+            <DialogTitle>Eliminar Empresa</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {deleteConfirm?.name}? This action cannot be undone.
+              Estas seguro que deseas eliminar {deleteConfirm?.name}? Esta accion no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-              Cancel
+              Cancelar
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+              Eliminar
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -61,7 +61,7 @@ export function Header({ onNavigateToSettings }: HeaderProps) {
               className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted"
             >
               <Settings className="h-4 w-4" />
-              Profile / Settings
+              Perfil / Configuracion
             </button>
             <div className="my-1 border-t border-border" />
             <button
@@ -69,7 +69,7 @@ export function Header({ onNavigateToSettings }: HeaderProps) {
               className="flex w-full items-center gap-3 px-4 py-2 text-sm text-destructive hover:bg-muted"
             >
               <LogOut className="h-4 w-4" />
-              Logout
+              Cerrar Sesion
             </button>
           </div>
         )}

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { User, Settings as SettingsIcon, Save, Eye, EyeOff, Check, Building2, CreditCard, Plus, Trash2 } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { User, Settings as SettingsIcon, Save, Eye, EyeOff, Check, Building2, CreditCard, Plus, Trash2, Camera } from 'lucide-react'
 import { useDashboardStore } from '@/lib/store'
 import { BankAccount } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -14,13 +14,13 @@ export function Settings() {
   // Profile state
   const [name, setName] = useState(userProfile.name)
   const [username, setUsername] = useState(userProfile.username)
+  const [profileImage, setProfileImage] = useState(userProfile.profileImage)
   const [profileSaved, setProfileSaved] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
-  // Password state
-  const [currentPassword, setCurrentPassword] = useState('')
+  // Password state (only new password and confirm required)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState(false)
@@ -40,38 +40,48 @@ export function Settings() {
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(systemSettings.bankAccounts)
   const [banksSaved, setBanksSaved] = useState(false)
   
+  // Handle profile image change
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64 = reader.result as string
+        setProfileImage(base64)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+  
   // Save profile
   const handleSaveProfile = () => {
-    updateProfile({ name, username })
+    updateProfile({ name, username, profileImage })
     setProfileSaved(true)
     setTimeout(() => setProfileSaved(false), 2000)
   }
   
-  // Change password
+  // Change password (no current password required)
   const handleChangePassword = () => {
     setPasswordError('')
     setPasswordSuccess(false)
     
     if (newPassword !== confirmPassword) {
-      setPasswordError('Las contraseñas no coinciden')
+      setPasswordError('Las contrasenas no coinciden')
       return
     }
     
     if (newPassword.length < 6) {
-      setPasswordError('La contraseña debe tener al menos 6 caracteres')
+      setPasswordError('La contrasena debe tener al menos 6 caracteres')
       return
     }
     
-    const success = updatePassword(currentPassword, newPassword)
+    const success = updatePassword('', newPassword)
     
     if (success) {
       setPasswordSuccess(true)
-      setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
       setTimeout(() => setPasswordSuccess(false), 2000)
-    } else {
-      setPasswordError('La contraseña actual es incorrecta')
     }
   }
   
@@ -142,8 +152,32 @@ export function Settings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
-                {name.charAt(0).toUpperCase()}
+              <div className="relative">
+                {profileImage ? (
+                  <img 
+                    src={profileImage} 
+                    alt="Perfil" 
+                    className="h-16 w-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
+                    {name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
+                >
+                  <Camera className="h-3.5 w-3.5" />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
               </div>
               <div>
                 <p className="font-medium">{name}</p>
