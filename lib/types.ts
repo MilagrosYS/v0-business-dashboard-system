@@ -2,6 +2,7 @@ export interface Company {
   id: string
   name: string
   ruc: string
+  address: string
   contact: string
   phone: string
   email: string
