@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, Plus, Minus, Pencil, X } from 'lucide-react'
+import { Search, Plus, Minus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,17 +16,12 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
 import { useDashboardStore } from '@/lib/store'
 import { SparePart, StockMovement } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-type ModalMode = 'detail' | 'adjust' | null
+type ModalMode = 'detail' | null
 
 const MINIMUM_STOCK = 10
 
@@ -58,13 +53,11 @@ function getStockStatusText(status: string) {
 }
 
 export function Inventory() {
-  const { spareParts, addStock, removeStock, adjustStock, getMovementsForPart } = useDashboardStore()
+  const { spareParts, addStock, removeStock, getMovementsForPart } = useDashboardStore()
   const [search, setSearch] = useState('')
   const [modalMode, setModalMode] = useState<ModalMode>(null)
   const [selectedPart, setSelectedPart] = useState<SparePart | null>(null)
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
-  const [quantity, setQuantity] = useState('')
-  const [adjustNote, setAdjustNote] = useState('')
   const [movements, setMovements] = useState<StockMovement[]>([])
   const [addRemoveMode, setAddRemoveMode] = useState<'add' | 'remove' | null>(null)
   const [addRemoveQty, setAddRemoveQty] = useState('')
@@ -88,34 +81,16 @@ export function Inventory() {
     setAddRemoveQty('')
   }
   
-  const openAdjust = (e: React.MouseEvent, part: SparePart) => {
-    e.stopPropagation()
-    setSelectedPart(part)
-    setQuantity(part.quantity.toString())
-    setAdjustNote('')
-    setModalMode('adjust')
-  }
+
   
   const closeModal = () => {
     setModalMode(null)
     setSelectedPart(null)
-    setQuantity('')
-    setAdjustNote('')
     setMovements([])
     setAddRemoveMode(null)
     setAddRemoveQty('')
   }
   
-  const handleAdjustSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedPart) return
-    
-    const qty = parseInt(quantity)
-    if (isNaN(qty) || qty < 0) return
-    
-    adjustStock(selectedPart.id, qty, adjustNote || undefined)
-    closeModal()
-  }
   
   const handleAddStock = () => {
     if (!selectedPart) return
@@ -154,10 +129,16 @@ export function Inventory() {
   }
   
   const getMovementLabel = (movement: StockMovement) => {
-    if (movement.note) return movement.note
-    if (movement.type === 'add') return 'manual'
-    if (movement.type === 'remove') return movement.partNumber
-    return 'adjustment'
+    if (movement.type === 'add') {
+      return movement.note || 'Added to stock'
+    } else if (movement.type === 'remove') {
+      if (movement.note) {
+        return `Venta a "${movement.note}"`
+      }
+      return 'manual'
+    } else {
+      return movement.note || 'Adjustment'
+    }
   }
   
   const getMovementColor = (type: StockMovement['type']) => {
@@ -204,13 +185,12 @@ export function Inventory() {
                 <TableHead>Part Number</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead className="text-right">Current Stock</TableHead>
-                <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredParts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                     No inventory items found
                   </TableCell>
                 </TableRow>
@@ -245,24 +225,6 @@ export function Inventory() {
                           {part.quantity}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        <div 
-                          className="flex justify-end"
-                          style={{
-                            opacity: hoveredRow === part.id ? 1 : 0,
-                            transition: 'opacity 0.15s ease'
-                          }}
-                        >
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={(e) => openAdjust(e, part)}
-                            className="h-7 w-7"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
                     </TableRow>
                   )
                 })
@@ -284,23 +246,16 @@ export function Inventory() {
             <div className="space-y-4 pt-2">
               {/* Header Info */}
               <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-mono text-sm text-muted-foreground">
-                        Item {filteredParts.findIndex(p => p.id === selectedPart.id) + 1}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-lg font-semibold text-primary">
-                        {selectedPart.partNumber}
-                      </span>
-                      <span className="font-mono text-sm text-muted-foreground">
-                        {selectedPart.internalCode}
-                      </span>
-                    </div>
-                    <p className="text-sm text-card-foreground mt-1">{selectedPart.description}</p>
+                <div>
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="font-mono text-lg font-semibold text-primary">
+                      {selectedPart.partNumber}
+                    </span>
+                    <span className="font-mono text-sm text-muted-foreground">
+                      {selectedPart.internalCode}
+                    </span>
                   </div>
+                  <p className="text-sm text-card-foreground">{selectedPart.description}</p>
                 </div>
                 
                 {/* Stock Info */}
@@ -403,14 +358,14 @@ export function Inventory() {
                 {movements.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No movements recorded</p>
                 ) : (
-                  <div className="max-h-32 space-y-1.5 overflow-y-auto">
-                    {movements.slice(0, 10).map((movement) => (
+                  <div className="max-h-40 space-y-1.5 overflow-y-auto">
+                    {movements.map((movement) => (
                       <div
                         key={movement.id}
                         className="flex items-center gap-2 text-sm"
                       >
                         <span className={cn(
-                          'font-mono font-semibold w-12',
+                          'font-mono font-semibold',
                           getMovementColor(movement.type)
                         )}>
                           {formatMovement(movement)}
@@ -425,54 +380,6 @@ export function Inventory() {
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-      
-      {/* Adjust Stock Modal */}
-      <Dialog open={modalMode === 'adjust'} onOpenChange={closeModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adjust Stock</DialogTitle>
-            <DialogDescription>
-              Set new total stock for {selectedPart?.partNumber}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleAdjustSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="adjust-quantity">New Stock Total</Label>
-                <Input
-                  id="adjust-quantity"
-                  type="number"
-                  min="0"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  placeholder="Enter new total..."
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="adjust-note">Note (optional)</Label>
-                <Input
-                  id="adjust-note"
-                  value={adjustNote}
-                  onChange={(e) => setAdjustNote(e.target.value)}
-                  placeholder="Reason for adjustment..."
-                />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Current stock: <span className="font-mono font-medium">{selectedPart?.quantity}</span>
-              </p>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeModal}>
-                Cancel
-              </Button>
-              <Button type="submit">
-                Save
-              </Button>
-            </DialogFooter>
-          </form>
         </DialogContent>
       </Dialog>
     </div>
