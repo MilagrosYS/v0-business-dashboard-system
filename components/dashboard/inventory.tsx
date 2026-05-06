@@ -133,7 +133,7 @@ export function Inventory() {
       return movement.note || 'Added to stock'
     } else if (movement.type === 'remove') {
       if (movement.note) {
-        return `Venta a "${movement.note}"`
+        return `"${movement.note}"`
       }
       return 'manual'
     } else {
