@@ -22,6 +22,7 @@ export function Settings() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   
@@ -234,27 +235,7 @@ export function Settings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Contraseña Actual</label>
-              <div className="relative">
-                <Input
-                  type={showCurrentPassword ? 'text' : 'password'}
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Ingresa contraseña actual"
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nueva Contraseña</label>
+              <label className="text-sm font-medium">Nueva Contrasena</label>
               <div className="relative">
                 <Input
                   type={showNewPassword ? 'text' : 'password'}
@@ -274,13 +255,23 @@ export function Settings() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Confirmar Nueva Contraseña</label>
-              <Input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirma nueva contraseña"
-              />
+              <label className="text-sm font-medium">Confirmar Nueva Contrasena</label>
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirma nueva contrasena"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             
             {passwordError && (
@@ -298,7 +289,7 @@ export function Settings() {
             <Button 
               onClick={handleChangePassword} 
               className="w-full"
-              disabled={!currentPassword || !newPassword || !confirmPassword}
+              disabled={!newPassword || !confirmPassword}
             >
               <Save className="mr-2 h-4 w-4" />
               Cambiar Contraseña

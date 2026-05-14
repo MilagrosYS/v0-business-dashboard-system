@@ -131,14 +131,11 @@ export function Inventory() {
   
   const getMovementLabel = (movement: StockMovement) => {
     if (movement.type === 'add') {
-      return movement.note || 'Added to stock'
+      return movement.note || 'Agregado al stock'
     } else if (movement.type === 'remove') {
-      if (movement.note) {
-        return `"${movement.note}"`
-      }
-      return 'manual'
+      return movement.note || 'manual'
     } else {
-      return movement.note || 'Adjustment'
+      return movement.note || 'Ajuste'
     }
   }
   
@@ -238,6 +235,9 @@ export function Inventory() {
       {/* Detail Modal */}
       <Dialog open={modalMode === 'detail'} onOpenChange={closeModal}>
         <DialogContent className="max-w-md">
+          <div className="sr-only">
+            <h2>Detalle de Repuesto</h2>
+          </div>
           <div className="absolute right-4 top-4">
             <Button variant="ghost" size="icon-sm" onClick={closeModal} className="h-7 w-7">
               <X className="h-4 w-4" />

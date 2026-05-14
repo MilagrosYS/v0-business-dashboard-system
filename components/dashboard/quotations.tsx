@@ -571,10 +571,6 @@ export function Quotations() {
       <Card className="border-border">
         <CardHeader className="flex flex-row items-center justify-between py-3">
           <CardTitle className="text-base">Productos</CardTitle>
-          <Button onClick={addRow} size="sm" variant="outline">
-            <Plus className="mr-1 h-4 w-4" />
-            Agregar
-          </Button>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="overflow-x-auto">
@@ -669,6 +665,14 @@ export function Quotations() {
                 ))}
               </TableBody>
             </Table>
+          </div>
+          
+          {/* Add Row Button - Below the table */}
+          <div className="mt-3">
+            <Button onClick={addRow} size="sm" variant="outline">
+              <Plus className="mr-1 h-4 w-4" />
+              Agregar fila
+            </Button>
           </div>
           
           {/* Totals - Compact */}
