@@ -1,12 +1,22 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { User, Settings as SettingsIcon, Save, Eye, EyeOff, Check, Building2, CreditCard, Plus, Trash2, Camera } from 'lucide-react'
 import { useDashboardStore } from '@/lib/store'
 import { BankAccount } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 export function Settings() {
   const { userProfile, systemSettings, updateProfile, updatePassword, updateSettings } = useDashboardStore()
@@ -18,7 +28,7 @@ export function Settings() {
   const [profileSaved, setProfileSaved] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   
-  // Password state (only new password and confirm required)
+  // Password state
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showNewPassword, setShowNewPassword] = useState(false)
@@ -41,6 +51,34 @@ export function Settings() {
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(systemSettings.bankAccounts)
   const [banksSaved, setBanksSaved] = useState(false)
   
+  // Bank account delete confirmation
+  const [bankToDeleteIndex, setBankToDeleteIndex] = useState<number | null>(null)
+  
+  // Check if profile has changes
+  const hasProfileChanges = useMemo(() => {
+    return name !== userProfile.name ||
+           username !== userProfile.username ||
+           profileImage !== userProfile.profileImage
+  }, [name, username, profileImage, userProfile])
+  
+  // Check if system settings have changes
+  const hasSettingsChanges = useMemo(() => {
+    return igvPercentage !== systemSettings.igvPercentage.toString() ||
+           currency !== systemSettings.currency ||
+           exchangeRate !== systemSettings.exchangeRate.toString() ||
+           sellerName !== systemSettings.sellerName
+  }, [igvPercentage, currency, exchangeRate, sellerName, systemSettings])
+  
+  // Check if business info has changes
+  const hasBusinessChanges = useMemo(() => {
+    return JSON.stringify(businessInfo) !== JSON.stringify(systemSettings.businessInfo)
+  }, [businessInfo, systemSettings.businessInfo])
+  
+  // Check if bank accounts have changes
+  const hasBankChanges = useMemo(() => {
+    return JSON.stringify(bankAccounts) !== JSON.stringify(systemSettings.bankAccounts)
+  }, [bankAccounts, systemSettings.bankAccounts])
+  
   // Handle profile image change
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -56,12 +94,13 @@ export function Settings() {
   
   // Save profile
   const handleSaveProfile = () => {
+    if (!hasProfileChanges) return
     updateProfile({ name, username, profileImage })
     setProfileSaved(true)
     setTimeout(() => setProfileSaved(false), 2000)
   }
   
-  // Change password (no current password required)
+  // Change password
   const handleChangePassword = () => {
     setPasswordError('')
     setPasswordSuccess(false)
@@ -88,6 +127,7 @@ export function Settings() {
   
   // Save system settings
   const handleSaveSettings = () => {
+    if (!hasSettingsChanges) return
     updateSettings({
       igvPercentage: parseFloat(igvPercentage) || 18,
       currency,
@@ -100,6 +140,7 @@ export function Settings() {
   
   // Save business info
   const handleSaveBusinessInfo = () => {
+    if (!hasBusinessChanges) return
     updateSettings({ businessInfo })
     setBusinessSaved(true)
     setTimeout(() => setBusinessSaved(false), 2000)
@@ -107,6 +148,7 @@ export function Settings() {
   
   // Save bank accounts
   const handleSaveBankAccounts = () => {
+    if (!hasBankChanges) return
     updateSettings({ bankAccounts })
     setBanksSaved(true)
     setTimeout(() => setBanksSaved(false), 2000)
@@ -117,9 +159,12 @@ export function Settings() {
     setBankAccounts([...bankAccounts, { bankName: '', accountNumber: '', cci: '' }])
   }
   
-  // Remove bank account
-  const removeBankAccount = (index: number) => {
-    setBankAccounts(bankAccounts.filter((_, i) => i !== index))
+  // Remove bank account (with confirmation)
+  const confirmRemoveBankAccount = () => {
+    if (bankToDeleteIndex !== null) {
+      setBankAccounts(bankAccounts.filter((_, i) => i !== bankToDeleteIndex))
+      setBankToDeleteIndex(null)
+    }
   }
   
   // Update bank account
@@ -133,7 +178,7 @@ export function Settings() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Configuración</h2>
+        <h2 className="text-2xl font-bold text-foreground">Configuracion</h2>
         <p className="text-muted-foreground">Administra tu perfil y preferencias del sistema</p>
       </div>
       
@@ -147,7 +192,7 @@ export function Settings() {
               </div>
               <div>
                 <CardTitle className="text-lg">Perfil</CardTitle>
-                <CardDescription>Actualiza tu información de cuenta</CardDescription>
+                <CardDescription>Actualiza tu informacion de cuenta</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -204,7 +249,11 @@ export function Settings() {
               />
             </div>
             
-            <Button onClick={handleSaveProfile} className="w-full">
+            <Button 
+              onClick={handleSaveProfile} 
+              className="w-full transition-opacity"
+              disabled={!hasProfileChanges}
+            >
               {profileSaved ? (
                 <span className="flex items-center gap-2">
                   <Check className="h-4 w-4" />
@@ -228,8 +277,8 @@ export function Settings() {
                 <User className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-lg">Cambiar Contraseña</CardTitle>
-                <CardDescription>Actualiza tu contraseña de acceso</CardDescription>
+                <CardTitle className="text-lg">Cambiar Contrasena</CardTitle>
+                <CardDescription>Actualiza tu contrasena de acceso</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -241,7 +290,7 @@ export function Settings() {
                   type={showNewPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Ingresa nueva contraseña"
+                  placeholder="Ingresa nueva contrasena"
                   className="pr-10"
                 />
                 <button
@@ -282,17 +331,17 @@ export function Settings() {
             
             {passwordSuccess && (
               <div className="rounded-lg bg-green-500/10 p-3 text-sm text-green-600">
-                Contraseña actualizada correctamente!
+                Contrasena actualizada correctamente!
               </div>
             )}
             
             <Button 
               onClick={handleChangePassword} 
-              className="w-full"
+              className="w-full transition-opacity"
               disabled={!newPassword || !confirmPassword}
             >
               <Save className="mr-2 h-4 w-4" />
-              Cambiar Contraseña
+              Cambiar Contrasena
             </Button>
           </CardContent>
         </Card>
@@ -305,7 +354,7 @@ export function Settings() {
                 <SettingsIcon className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-lg">Configuración del Sistema</CardTitle>
+                <CardTitle className="text-lg">Configuracion del Sistema</CardTitle>
                 <CardDescription>Configura las preferencias de negocio</CardDescription>
               </div>
             </div>
@@ -357,7 +406,11 @@ export function Settings() {
             </div>
             
             <div className="mt-6">
-              <Button onClick={handleSaveSettings}>
+              <Button 
+                onClick={handleSaveSettings}
+                disabled={!hasSettingsChanges}
+                className="transition-opacity"
+              >
                 {settingsSaved ? (
                   <span className="flex items-center gap-2">
                     <Check className="h-4 w-4" />
@@ -366,7 +419,7 @@ export function Settings() {
                 ) : (
                   <span className="flex items-center gap-2">
                     <Save className="h-4 w-4" />
-                    Guardar Configuración
+                    Guardar Configuracion
                   </span>
                 )}
               </Button>
@@ -382,8 +435,8 @@ export function Settings() {
                 <Building2 className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-lg">Información de la Empresa</CardTitle>
-                <CardDescription>Datos que aparecerán en las cotizaciones PDF</CardDescription>
+                <CardTitle className="text-lg">Informacion de la Empresa</CardTitle>
+                <CardDescription>Datos que apareceran en las cotizaciones PDF</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -408,20 +461,20 @@ export function Settings() {
               </div>
               
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium">Dirección Arequipa</label>
+                <label className="text-sm font-medium">Direccion Arequipa</label>
                 <Input
                   value={businessInfo.addressArequipa}
                   onChange={(e) => setBusinessInfo({ ...businessInfo, addressArequipa: e.target.value })}
-                  placeholder="Dirección en Arequipa"
+                  placeholder="Direccion en Arequipa"
                 />
               </div>
               
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium">Dirección Lima</label>
+                <label className="text-sm font-medium">Direccion Lima</label>
                 <Input
                   value={businessInfo.addressLima}
                   onChange={(e) => setBusinessInfo({ ...businessInfo, addressLima: e.target.value })}
-                  placeholder="Dirección en Lima"
+                  placeholder="Direccion en Lima"
                 />
               </div>
               
@@ -436,17 +489,21 @@ export function Settings() {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Teléfono</label>
+                <label className="text-sm font-medium">Telefono</label>
                 <Input
                   value={businessInfo.phone}
                   onChange={(e) => setBusinessInfo({ ...businessInfo, phone: e.target.value })}
-                  placeholder="Teléfono de contacto"
+                  placeholder="Telefono de contacto"
                 />
               </div>
             </div>
             
             <div className="mt-6">
-              <Button onClick={handleSaveBusinessInfo}>
+              <Button 
+                onClick={handleSaveBusinessInfo}
+                disabled={!hasBusinessChanges}
+                className="transition-opacity"
+              >
                 {businessSaved ? (
                   <span className="flex items-center gap-2">
                     <Check className="h-4 w-4" />
@@ -455,7 +512,7 @@ export function Settings() {
                 ) : (
                   <span className="flex items-center gap-2">
                     <Save className="h-4 w-4" />
-                    Guardar Información
+                    Guardar Informacion
                   </span>
                 )}
               </Button>
@@ -499,7 +556,7 @@ export function Settings() {
                     <Input
                       value={account.accountNumber}
                       onChange={(e) => updateBankAccount(index, 'accountNumber', e.target.value)}
-                      placeholder="Número de cuenta"
+                      placeholder="Numero de cuenta"
                     />
                   </div>
                   <div className="space-y-2">
@@ -507,14 +564,14 @@ export function Settings() {
                     <Input
                       value={account.cci || ''}
                       onChange={(e) => updateBankAccount(index, 'cci', e.target.value)}
-                      placeholder="Código interbancario"
+                      placeholder="Codigo interbancario"
                     />
                   </div>
                   <div className="flex items-end">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeBankAccount(index)}
+                      onClick={() => setBankToDeleteIndex(index)}
                       className="text-destructive hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -531,7 +588,11 @@ export function Settings() {
             </div>
             
             <div className="mt-6">
-              <Button onClick={handleSaveBankAccounts}>
+              <Button 
+                onClick={handleSaveBankAccounts}
+                disabled={!hasBankChanges}
+                className="transition-opacity"
+              >
                 {banksSaved ? (
                   <span className="flex items-center gap-2">
                     <Check className="h-4 w-4" />
@@ -548,6 +609,32 @@ export function Settings() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Bank Account Delete Confirmation */}
+      <AlertDialog open={bankToDeleteIndex !== null} onOpenChange={() => setBankToDeleteIndex(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Cuenta Bancaria</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta seguro de eliminar esta cuenta bancaria?
+              {bankToDeleteIndex !== null && bankAccounts[bankToDeleteIndex]?.bankName && (
+                <span className="font-medium"> ({bankAccounts[bankToDeleteIndex].bankName})</span>
+              )}
+              <br />
+              Esta accion no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmRemoveBankAccount} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Building2, FileText, Download, Copy, Search, ChevronRight, ArrowLeft, Calendar, DollarSign, Trash2, Eye, Edit, FolderOpen, Package } from 'lucide-react'
+import { Building2, FileText, Download, Copy, Search, ChevronRight, ArrowLeft, DollarSign, Trash2, Eye, FolderOpen } from 'lucide-react'
 import { useDashboardStore } from '@/lib/store'
 import { Quotation } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -15,14 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,11 +44,17 @@ export function QuotationHistory() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null)
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null)
   
-  // Filter states
+  // Filter states for main view
   const [searchTerm, setSearchTerm] = useState('')
   const [minAmount, setMinAmount] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  
+  // Filter states for company folder view
+  const [companySearchTerm, setCompanySearchTerm] = useState('')
+  const [companyMinAmount, setCompanyMinAmount] = useState('')
+  const [companyDateFrom, setCompanyDateFrom] = useState('')
+  const [companyDateTo, setCompanyDateTo] = useState('')
   
   // Delete confirmation state
   const [quotationToDelete, setQuotationToDelete] = useState<Quotation | null>(null)
@@ -82,13 +80,12 @@ export function QuotationHistory() {
     return Object.values(groups).sort((a, b) => b.totalAmount - a.totalAmount)
   }, [quotations])
   
-  // Filter recent quotations
+  // Filter recent quotations (main view)
   const filteredQuotations = useMemo(() => {
     let filtered = [...quotations].sort((a, b) => 
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
     
-    // Search by quotation number or company name
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(q => 
@@ -97,12 +94,10 @@ export function QuotationHistory() {
       )
     }
     
-    // Filter by minimum amount
     if (minAmount) {
       filtered = filtered.filter(q => q.total >= parseFloat(minAmount))
     }
     
-    // Filter by date range
     if (dateFrom) {
       const fromDate = new Date(dateFrom)
       fromDate.setHours(0, 0, 0, 0)
@@ -118,18 +113,50 @@ export function QuotationHistory() {
     return filtered
   }, [quotations, searchTerm, minAmount, dateFrom, dateTo])
   
-  // Get quotations for selected company
+  // Get quotations for selected company with filters (NO company name filter)
   const companyQuotations = useMemo(() => {
     if (!selectedCompanyId) return []
-    return quotations
+    
+    let filtered = quotations
       .filter(q => q.companyId === selectedCompanyId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [quotations, selectedCompanyId])
+    
+    // Search by quotation number only (not company name since we're already in a company)
+    if (companySearchTerm) {
+      const searchLower = companySearchTerm.toLowerCase()
+      filtered = filtered.filter(q => 
+        q.quotationNumber.toLowerCase().includes(searchLower)
+      )
+    }
+    
+    if (companyMinAmount) {
+      filtered = filtered.filter(q => q.total >= parseFloat(companyMinAmount))
+    }
+    
+    if (companyDateFrom) {
+      const fromDate = new Date(companyDateFrom)
+      fromDate.setHours(0, 0, 0, 0)
+      filtered = filtered.filter(q => new Date(q.date) >= fromDate)
+    }
+    
+    if (companyDateTo) {
+      const toDate = new Date(companyDateTo)
+      toDate.setHours(23, 59, 59, 999)
+      filtered = filtered.filter(q => new Date(q.date) <= toDate)
+    }
+    
+    return filtered
+  }, [quotations, selectedCompanyId, companySearchTerm, companyMinAmount, companyDateFrom, companyDateTo])
   
   // Handle company click
   const handleCompanyClick = (companyId: string) => {
     setSelectedCompanyId(companyId)
     setViewMode('company-quotations')
+    // Reset company filters
+    setCompanySearchTerm('')
+    setCompanyMinAmount('')
+    setCompanyDateFrom('')
+    setCompanyDateTo('')
   }
   
   // Handle quotation click
@@ -348,14 +375,22 @@ export function QuotationHistory() {
     setDateTo('')
   }
   
+  const clearCompanyFilters = () => {
+    setCompanySearchTerm('')
+    setCompanyMinAmount('')
+    setCompanyDateFrom('')
+    setCompanyDateTo('')
+  }
+  
   const hasFilters = searchTerm || minAmount || dateFrom || dateTo
+  const hasCompanyFilters = companySearchTerm || companyMinAmount || companyDateFrom || companyDateTo
   
   // Get selected company name
   const selectedCompanyName = selectedCompanyId 
     ? companyGroups.find(g => g.companyId === selectedCompanyId)?.companyName 
     : ''
   
-  // Quotation Card Component
+  // Quotation Card Component - Only "Ver detalle" button visible
   const QuotationCard = ({ quotation, showCompany = false }: { quotation: Quotation; showCompany?: boolean }) => (
     <Card className="transition-all hover:border-primary/50 hover:shadow-md">
       <CardContent className="p-4">
@@ -389,55 +424,19 @@ export function QuotationHistory() {
           </div>
         </div>
         
-        {/* Actions */}
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        {/* Only Ver detalle button visible */}
+        <div className="mt-3">
           <Button
             size="sm"
             variant="outline"
-            className="h-7 gap-1 text-xs"
+            className="h-8 w-full gap-1.5"
             onClick={(e) => {
               e.stopPropagation()
               handleQuotationClick(quotation)
             }}
           >
-            <Eye className="h-3 w-3" />
-            Ver
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 gap-1 text-xs"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleDuplicate(quotation)
-            }}
-          >
-            <Copy className="h-3 w-3" />
-            Duplicar
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 gap-1 text-xs"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleExportPDF(quotation)
-            }}
-          >
-            <Download className="h-3 w-3" />
-            PDF
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 gap-1 text-xs text-destructive hover:bg-destructive hover:text-destructive-foreground"
-            onClick={(e) => {
-              e.stopPropagation()
-              setQuotationToDelete(quotation)
-            }}
-          >
-            <Trash2 className="h-3 w-3" />
-            Eliminar
+            <Eye className="h-4 w-4" />
+            Ver detalle
           </Button>
         </div>
       </CardContent>
@@ -532,7 +531,7 @@ export function QuotationHistory() {
           
           {/* Recent Quotations */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-foreground">Cotizaciones Recientes</h3>
+            <h3 className="mb-4 text-lg font-semibold text-foreground">Ultimas Cotizaciones</h3>
             {filteredQuotations.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
@@ -602,11 +601,75 @@ export function QuotationHistory() {
       {/* Company Quotations View */}
       {viewMode === 'company-quotations' && (
         <>
+          {/* Filters for company view - NO company name filter */}
+          <Card className="border-border">
+            <CardContent className="pt-4">
+              <div className="grid gap-4 md:grid-cols-4">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">N de Cotizacion</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por numero..."
+                      value={companySearchTerm}
+                      onChange={(e) => setCompanySearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Monto minimo</label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={companyMinAmount}
+                      onChange={(e) => setCompanyMinAmount(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Fecha desde</label>
+                  <Input
+                    type="date"
+                    value={companyDateFrom}
+                    onChange={(e) => setCompanyDateFrom(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Fecha hasta</label>
+                  <Input
+                    type="date"
+                    value={companyDateTo}
+                    onChange={(e) => setCompanyDateTo(e.target.value)}
+                  />
+                </div>
+              </div>
+              {hasCompanyFilters && (
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {companyQuotations.length} resultado(s)
+                  </span>
+                  <Button variant="ghost" size="sm" onClick={clearCompanyFilters}>
+                    Limpiar filtros
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
           {companyQuotations.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="mb-4 h-12 w-12 text-muted-foreground/50" />
-                <p className="text-lg font-medium text-muted-foreground">Sin cotizaciones</p>
+                <p className="text-lg font-medium text-muted-foreground">
+                  {hasCompanyFilters ? 'No se encontraron cotizaciones' : 'Sin cotizaciones'}
+                </p>
+                {hasCompanyFilters && (
+                  <p className="text-sm text-muted-foreground">Intenta ajustar los filtros</p>
+                )}
               </CardContent>
             </Card>
           ) : (
@@ -619,10 +682,10 @@ export function QuotationHistory() {
         </>
       )}
       
-      {/* Quotation Detail View */}
+      {/* Quotation Detail View - Actions moved here */}
       {viewMode === 'quotation-detail' && selectedQuotation && (
         <>
-          {/* Actions */}
+          {/* Actions inside detail view */}
           <div className="flex items-center gap-3">
             <Button onClick={() => handleExportPDF(selectedQuotation)}>
               <Download className="mr-2 h-4 w-4" />
