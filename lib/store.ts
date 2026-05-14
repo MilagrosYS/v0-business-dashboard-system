@@ -385,8 +385,8 @@ interface DashboardStore {
   
   // Inventory
   stockMovements: StockMovement[]
-  addStock: (partId: string, quantity: number) => void
-  removeStock: (partId: string, quantity: number) => void
+  addStock: (partId: string, quantity: number, note?: string) => void
+  removeStock: (partId: string, quantity: number, note?: string) => void
   adjustStock: (partId: string, newTotal: number, note?: string) => void
   getInventoryItems: () => InventoryItem[]
   getMovementsForPart: (partId: string) => StockMovement[]
@@ -493,7 +493,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   })),
   
   // Inventory methods
-  addStock: (partId, quantity) => {
+  addStock: (partId, quantity, note?: string) => {
     const part = get().spareParts.find(p => p.id === partId)
     if (!part) return
     
@@ -512,12 +512,13 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
         quantity,
         previousStock,
         newStock,
+        note: note || 'Agregado al stock',
         createdAt: new Date(),
       }]
     }))
   },
   
-  removeStock: (partId, quantity) => {
+  removeStock: (partId, quantity, note?: string) => {
     const part = get().spareParts.find(p => p.id === partId)
     if (!part || part.quantity < quantity) return
     
@@ -536,6 +537,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
         quantity,
         previousStock,
         newStock,
+        note: note || 'manual',
         createdAt: new Date(),
       }]
     }))
@@ -598,10 +600,10 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
       updatedAt: new Date(),
     }
     
-    // Reduce stock for each item with a partId
+    // Reduce stock for each item with a partId (note: sale to company)
     quotation.items.forEach(item => {
       if (item.partId) {
-        get().removeStock(item.partId, item.quantity)
+        get().removeStock(item.partId, item.quantity, `Venta a ${quotation.companyName}`)
       }
     })
     
