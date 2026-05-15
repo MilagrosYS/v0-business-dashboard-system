@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useDashboardStore } from '@/lib/store'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { Header } from '@/components/dashboard/header'
@@ -14,10 +14,31 @@ import { Settings } from '@/components/dashboard/settings'
 import { Login } from '@/components/dashboard/login'
 import { cn } from '@/lib/utils'
 
+export type InventoryFilter = 'all' | 'low-stock'
+
 export default function Dashboard() {
   const { isAuthenticated } = useDashboardStore()
   const [activeSection, setActiveSection] = useState('overview')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [inventoryFilter, setInventoryFilter] = useState<InventoryFilter>('all')
+  
+  // Navigation handlers with filter support
+  const navigateToInventory = useCallback((filter: InventoryFilter = 'all') => {
+    setInventoryFilter(filter)
+    setActiveSection('inventory')
+  }, [])
+  
+  const navigateToHistory = useCallback(() => {
+    setActiveSection('history')
+  }, [])
+  
+  // Reset filter when navigating away from inventory via sidebar
+  const handleSectionChange = useCallback((section: string) => {
+    if (section !== 'inventory') {
+      setInventoryFilter('all')
+    }
+    setActiveSection(section)
+  }, [])
   
   // Show login if not authenticated
   if (!isAuthenticated) {
@@ -28,12 +49,11 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <Sidebar 
         activeSection={activeSection} 
-        onSectionChange={setActiveSection}
+        onSectionChange={handleSectionChange}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
       <Header 
-        onNavigateToSettings={() => setActiveSection('settings')}
         sidebarCollapsed={sidebarCollapsed}
       />
       
@@ -41,10 +61,20 @@ export default function Dashboard() {
         'min-h-screen pt-16 p-8 transition-all duration-300 ease-in-out',
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       )}>
-        {activeSection === 'overview' && <Overview />}
+        {activeSection === 'overview' && (
+          <Overview 
+            onNavigateToInventory={navigateToInventory}
+            onNavigateToHistory={navigateToHistory}
+          />
+        )}
         {activeSection === 'companies' && <Companies />}
         {activeSection === 'parts' && <SpareParts />}
-        {activeSection === 'inventory' && <Inventory />}
+        {activeSection === 'inventory' && (
+          <Inventory 
+            initialFilter={inventoryFilter}
+            onFilterChange={setInventoryFilter}
+          />
+        )}
         {activeSection === 'quotations' && <Quotations />}
         {activeSection === 'history' && <QuotationHistory />}
         {activeSection === 'settings' && <Settings />}

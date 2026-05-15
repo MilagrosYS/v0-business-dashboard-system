@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useDashboardStore } from '@/lib/store'
+import type { InventoryFilter } from '@/app/page'
 import {
   LineChart,
   Line,
@@ -29,7 +30,12 @@ import {
   Legend,
 } from 'recharts'
 
-export function Overview() {
+interface OverviewProps {
+  onNavigateToInventory: (filter: InventoryFilter) => void
+  onNavigateToHistory: () => void
+}
+
+export function Overview({ onNavigateToInventory, onNavigateToHistory }: OverviewProps) {
   const { companies, spareParts, quotations, stockMovements } = useDashboardStore()
   
   // Calculate current month quotations
@@ -323,7 +329,12 @@ export function Overview() {
               <p className="text-2xl font-bold text-red-600">{lowStockItems.length || 12}</p>
               <p className="text-xs text-muted-foreground">Repuestos con stock bajo</p>
             </div>
-            <Button size="sm" variant="destructive" className="mt-3 w-full">
+            <Button 
+              size="sm" 
+              variant="destructive" 
+              className="mt-3 w-full"
+              onClick={() => onNavigateToInventory('low-stock')}
+            >
               Ver detalles
             </Button>
           </CardContent>
@@ -445,7 +456,12 @@ export function Overview() {
         <Card className="border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base font-semibold">Ultimas cotizaciones</CardTitle>
-            <Button variant="link" size="sm" className="text-primary">
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="text-primary"
+              onClick={onNavigateToHistory}
+            >
               Ver todas
             </Button>
           </CardHeader>
@@ -495,7 +511,12 @@ export function Overview() {
         <Card className="border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base font-semibold">Repuestos con stock bajo</CardTitle>
-            <Button variant="link" size="sm" className="text-primary">
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="text-primary"
+              onClick={() => onNavigateToInventory('low-stock')}
+            >
               Ver todos
             </Button>
           </CardHeader>

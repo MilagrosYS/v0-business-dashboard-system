@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { Search, Plus, Minus, X } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { Search, Plus, Minus, X, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,6 +20,7 @@ import {
 import { useDashboardStore } from '@/lib/store'
 import { SparePart, StockMovement, normalizePartNumber } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import type { InventoryFilter } from '@/app/page'
 
 type ModalMode = 'detail' | null
 
