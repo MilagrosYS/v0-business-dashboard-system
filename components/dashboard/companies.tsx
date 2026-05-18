@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Plus, Search, Pencil, Trash2, X } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, X, Building2, MapPin, Mail, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -220,24 +220,14 @@ export function Companies() {
                       <TableCell>
                         <div className="flex items-center justify-end gap-2">
                           {isHovered ? (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => openEdit(company, e)}
-                                className="h-8 px-2 text-muted-foreground hover:text-foreground"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => handleDelete(company, e)}
-                                className="h-8 px-2 text-muted-foreground hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => handleDelete(company, e)}
+                              className="h-8 px-2 text-muted-foreground hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           ) : (
                             <span
                               className={cn(
@@ -260,144 +250,266 @@ export function Companies() {
       
       {/* Create/Edit Modal */}
       <Dialog open={modalMode === 'create' || modalMode === 'edit'} onOpenChange={closeModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{modalMode === 'create' ? 'Nueva Empresa' : 'Editar Empresa'}</DialogTitle>
-            <DialogDescription>
-              {modalMode === 'create' 
-                ? 'Agrega una nueva empresa cliente al sistema.' 
-                : 'Actualiza la informacion de la empresa.'}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Nombre de Empresa *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Ingresa nombre de empresa"
-                  required
-                />
+        <DialogContent className="sm:max-w-2xl border-0 shadow-lg p-0 overflow-hidden">
+          {/* Blue top border accent */}
+          <div className="h-1 bg-gradient-to-r from-blue-600 to-blue-400" />
+          
+          <div className="p-6 space-y-6">
+            {/* Header with close button */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100">
+                  <Building2 className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-semibold text-foreground">
+                    {modalMode === 'create' ? 'Nueva Empresa' : 'Editar Empresa'}
+                  </h1>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="ruc">RUC *</Label>
-                <Input
-                  id="ruc"
-                  value={formData.ruc}
-                  onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
-                  placeholder="Ingresa RUC"
-                  required
-                />
+              <button
+                onClick={closeModal}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Row 1: Nombre and RUC */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Nombre de Empresa *
+                  </Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Ingresa nombre de empresa"
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ruc" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    RUC *
+                  </Label>
+                  <Input
+                    id="ruc"
+                    value={formData.ruc}
+                    onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
+                    placeholder="Ingresa RUC"
+                    required
+                    className="text-sm"
+                  />
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="address">Direccion</Label>
+              
+              {/* Row 2: Address */}
+              <div className="space-y-2">
+                <Label htmlFor="address" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Dirección Fiscal
+                </Label>
                 <Input
                   id="address"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="Ingresa direccion"
+                  placeholder="Ingresa dirección"
+                  className="text-sm"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="Ingresa email"
-                />
+              
+              {/* Row 3: Email and Phone */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Correo Electrónico
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="Ingresa email"
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Teléfono de Contacto
+                  </Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="Ingresa teléfono"
+                    className="text-sm"
+                  />
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Telefono</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="Ingresa telefono"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="contact">Contacto</Label>
+              
+              {/* Row 4: Contact */}
+              <div className="space-y-2">
+                <Label htmlFor="contact" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Contacto Directo
+                </Label>
                 <Input
                   id="contact"
                   value={formData.contact}
                   onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                   placeholder="Ingresa nombre de contacto"
+                  className="text-sm"
                 />
               </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeModal}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={!canSubmit} className={!canSubmit ? 'opacity-50' : ''}>
-                {modalMode === 'create' ? 'Crear' : 'Guardar Cambios'}
-              </Button>
-            </DialogFooter>
-          </form>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-border">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="flex-1 text-sm"
+                  onClick={closeModal}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={!canSubmit}
+                  className={cn(
+                    "flex-1 bg-foreground text-background hover:bg-foreground/90 text-sm",
+                    !canSubmit && 'opacity-50 cursor-not-allowed'
+                  )}
+                >
+                  {modalMode === 'create' ? 'Crear Empresa' : 'Guardar Cambios'}
+                </Button>
+              </div>
+            </form>
+          </div>
         </DialogContent>
       </Dialog>
       
-      {/* View Modal - Redesigned */}
+      {/* View Modal - Detail Modal */}
       <Dialog open={modalMode === 'view'} onOpenChange={closeModal}>
-        <DialogContent className="sm:max-w-md">
-          <button
-            onClick={closeModal}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </button>
-          {selectedCompany && (() => {
-            const status = getActivityStatus(selectedCompany.lastActivity)
-            return (
-              <div className="space-y-4 pt-2">
-                {/* Header with Company Name and Status */}
-                <div className="flex items-start justify-between pr-6">
-                  <div>
-                    <h2 className="text-xl font-semibold text-card-foreground">{selectedCompany.name}</h2>
-                    <p className="font-mono text-sm text-muted-foreground">{selectedCompany.ruc}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span
-                      className={cn(
-                        'h-3 w-3 rounded-full',
-                        statusColors[status]
-                      )}
-                    />
-                    <span className="text-xs text-muted-foreground">
-                      {formatDate(selectedCompany.lastActivity)}
-                    </span>
-                  </div>
+        <DialogContent className="sm:max-w-2xl border-0 shadow-lg p-0 overflow-hidden">
+          {/* Blue top border accent */}
+          <div className="h-1 bg-gradient-to-r from-blue-600 to-blue-400" />
+          
+          <div className="p-6 space-y-6">
+            {/* Header with close button */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100">
+                  <Building2 className="h-5 w-5 text-blue-600" />
                 </div>
-                
-                {/* Company Details */}
-                <div className="grid gap-3 rounded-lg border border-border bg-muted/30 p-4">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Direccion</span>
-                    <span className="text-sm font-medium text-card-foreground text-right max-w-[200px]">
-                      {selectedCompany.address || '-'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Email</span>
-                    <span className="text-sm font-medium text-card-foreground">{selectedCompany.email || '-'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Telefono</span>
-                    <span className="text-sm font-medium text-card-foreground">{selectedCompany.phone || '-'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Contacto</span>
-                    <span className="text-sm font-medium text-card-foreground">{selectedCompany.contact || '-'}</span>
-                  </div>
+                <div>
+                  <h1 className="text-lg font-semibold text-foreground">Detalle de Empresa</h1>
                 </div>
               </div>
-            )
-          })()}
+              <button
+                onClick={closeModal}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            {selectedCompany && (() => {
+              const status = getActivityStatus(selectedCompany.lastActivity)
+              return (
+                <div className="space-y-6">
+                  {/* Company Name */}
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Razón Social</p>
+                    <h2 className="text-2xl font-semibold text-foreground">{selectedCompany.name}</h2>
+                  </div>
+                  
+                  {/* RUC and Status */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">RUC</p>
+                      <p className="text-sm font-medium text-foreground font-mono">{selectedCompany.ruc}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Estado</p>
+                      <div className="flex items-center gap-2">
+                        <span className={cn('h-2 w-2 rounded-full', statusColors[status])} />
+                        <span className="text-sm font-medium text-foreground">{statusLabels[status]}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Address */}
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Dirección Fiscal</p>
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-foreground">{selectedCompany.address || 'No especificado'}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Email and Phone */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Correo Electrónico</p>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <a href={`mailto:${selectedCompany.email}`} className="text-sm text-blue-600 hover:text-blue-700 underline">
+                          {selectedCompany.email || 'No especificado'}
+                        </a>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Teléfono de Contacto</p>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <a href={`tel:${selectedCompany.phone}`} className="text-sm text-blue-600 hover:text-blue-700 underline">
+                          {selectedCompany.phone || 'No especificado'}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Contact Person Card */}
+                  {selectedCompany.contact && (
+                    <div className="rounded-lg border border-border bg-muted/40 p-4">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Contacto Directo</p>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-semibold text-sm">
+                          {selectedCompany.contact.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{selectedCompany.contact}</p>
+                          <p className="text-xs text-muted-foreground">Representante</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-4 border-t border-border">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 text-sm"
+                      onClick={closeModal}
+                    >
+                      Historial de Compras
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-foreground text-background hover:bg-foreground/90 text-sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        closeModal()
+                        setTimeout(() => openEdit(selectedCompany, e as any), 100)
+                      }}
+                    >
+                      Editar
+                    </Button>
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
         </DialogContent>
       </Dialog>
       
