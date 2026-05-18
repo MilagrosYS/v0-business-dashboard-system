@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { Building2, Package, Warehouse, LayoutDashboard, FileText, History, ChevronLeft, ChevronRight, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -18,63 +19,58 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { id: 'overview', label: 'Panel Principal', icon: LayoutDashboard },
-  { id: 'companies', label: 'Empresas', icon: Building2 },
-  { id: 'parts', label: 'Repuestos', icon: Package },
-  { id: 'inventory', label: 'Inventario', icon: Warehouse },
-  { id: 'quotations', label: 'Cotizaciones', icon: FileText },
-  { id: 'history', label: 'Historial', icon: History },
+  { id: 'overview', label: 'Panel principal', icon: LayoutDashboard, section: 'main' },
+  { id: 'companies', label: 'Empresas', icon: Building2, section: 'main' },
+  { id: 'parts', label: 'Repuestos', icon: Package, section: 'main' },
+  { id: 'inventory', label: 'Inventario', icon: Warehouse, section: 'main' },
+  { id: 'quotations', label: 'Cotizacion', icon: FileText, section: 'cotizaciones' },
+  { id: 'history', label: 'Historial', icon: History, section: 'cotizaciones' },
 ]
 
 export function Sidebar({ activeSection, onSectionChange, collapsed, onToggleCollapse }: SidebarProps) {
+  const mainItems = navItems.filter(item => item.section === 'main')
+  const cotizacionesItems = navItems.filter(item => item.section === 'cotizaciones')
+
   return (
     <TooltipProvider delayDuration={0}>
       <aside 
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out',
+          'fixed left-0 top-0 z-40 h-screen bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out flex flex-col',
           collapsed ? 'w-16' : 'w-64'
         )}
       >
-        {/* Logo */}
+        {/* Logo Section */}
         <div className={cn(
-          'flex h-16 items-center border-b border-sidebar-border transition-all duration-300',
-          collapsed ? 'justify-center px-2' : 'gap-3 px-6'
+          'flex items-center justify-center border-b border-gray-700 transition-all duration-300 bg-gradient-to-b from-gray-800 to-gray-900',
+          collapsed ? 'h-16 px-2' : 'h-40 px-6 pt-8 pb-6'
         )}>
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
-            <Package className="h-5 w-5 text-sidebar-primary-foreground" />
-          </div>
-          <div className={cn(
-            'overflow-hidden transition-all duration-300',
-            collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
-          )}>
-            <h1 className="text-sm font-semibold text-sidebar-foreground whitespace-nowrap">PartsControl</h1>
-            <p className="text-xs text-sidebar-muted whitespace-nowrap">Panel de Control</p>
-          </div>
+          {!collapsed && (
+            <div className="w-full flex justify-center">
+              <Image 
+                src="/vr-logo.png" 
+                alt="VR Maquinarias Inversiones"
+                width={140}
+                height={110}
+                className="h-auto"
+                priority
+              />
+            </div>
+          )}
+          {collapsed && (
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
+              <Package className="h-6 w-6 text-blue-400" />
+            </div>
+          )}
         </div>
         
-        {/* Collapse Toggle Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleCollapse}
-          className={cn(
-            'absolute -right-3 top-20 z-50 h-6 w-6 rounded-full border border-sidebar-border bg-sidebar text-sidebar-muted shadow-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-          )}
-        >
-          {collapsed ? (
-            <ChevronRight className="h-3 w-3" />
-          ) : (
-            <ChevronLeft className="h-3 w-3" />
-          )}
-        </Button>
-        
-        {/* Navigation */}
+        {/* Navigation Container */}
         <nav className={cn(
-          'mt-6 transition-all duration-300',
-          collapsed ? 'px-2' : 'px-3'
+          'flex-1 overflow-y-auto transition-all duration-300',
+          collapsed ? 'px-2 py-4' : 'px-4 py-6'
         )}>
           <ul className="space-y-1">
-            {navItems.map((item) => {
+            {/* Main Navigation Items */}
+            {mainItems.map((item) => {
               const Icon = item.icon
               const isActive = activeSection === item.id
               
@@ -83,15 +79,15 @@ export function Sidebar({ activeSection, onSectionChange, collapsed, onToggleCol
                   onClick={() => onSectionChange(item.id)}
                   className={cn(
                     'flex w-full items-center rounded-lg text-sm font-medium transition-all duration-200',
-                    collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
+                    collapsed ? 'justify-center p-2.5 h-10' : 'gap-3 px-3 py-2.5 h-auto',
                     isActive
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md'
-                      : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/40'
+                      : 'text-gray-400 hover:bg-blue-600/20 hover:text-blue-300 hover:shadow-md hover:shadow-blue-600/30'
                   )}
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
                   <span className={cn(
-                    'overflow-hidden whitespace-nowrap transition-all duration-300',
+                    'overflow-hidden whitespace-nowrap transition-all duration-300 text-left',
                     collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
                   )}>
                     {item.label}
@@ -106,7 +102,60 @@ export function Sidebar({ activeSection, onSectionChange, collapsed, onToggleCol
                       <TooltipTrigger asChild>
                         {button}
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="bg-sidebar text-sidebar-foreground">
+                      <TooltipContent side="right" className="bg-gray-900 text-gray-100 border-gray-700">
+                        {item.label}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    button
+                  )}
+                </li>
+              )
+            })}
+
+            {/* Cotizaciones Section */}
+            {!collapsed && (
+              <>
+                <li className="pt-4 pb-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cotizaciones</p>
+                </li>
+              </>
+            )}
+
+            {/* Cotizaciones Items */}
+            {cotizacionesItems.map((item) => {
+              const Icon = item.icon
+              const isActive = activeSection === item.id
+              
+              const button = (
+                <button
+                  onClick={() => onSectionChange(item.id)}
+                  className={cn(
+                    'flex w-full items-center rounded-lg text-sm font-medium transition-all duration-200',
+                    collapsed ? 'justify-center p-2.5 h-10' : 'gap-3 px-3 py-2.5 h-auto',
+                    isActive
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/40'
+                      : 'text-gray-400 hover:bg-blue-600/20 hover:text-blue-300 hover:shadow-md hover:shadow-blue-600/30'
+                  )}
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className={cn(
+                    'overflow-hidden whitespace-nowrap transition-all duration-300 text-left',
+                    collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+                  )}>
+                    {item.label}
+                  </span>
+                </button>
+              )
+              
+              return (
+                <li key={item.id}>
+                  {collapsed ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        {button}
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="bg-gray-900 text-gray-100 border-gray-700">
                         {item.label}
                       </TooltipContent>
                     </Tooltip>
@@ -118,58 +167,75 @@ export function Sidebar({ activeSection, onSectionChange, collapsed, onToggleCol
             })}
           </ul>
         </nav>
-        
-        {/* Settings Button */}
+
+        {/* Settings & Collapse */}
         <div className={cn(
-          'absolute bottom-16 left-0 right-0 transition-all duration-300',
-          collapsed ? 'px-2' : 'px-3'
+          'border-t border-sidebar-border transition-all duration-300',
+          collapsed ? 'px-2 py-4' : 'px-4 py-4'
         )}>
-          {collapsed ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => onSectionChange('settings')}
-                  className={cn(
-                    'flex w-full items-center justify-center rounded-lg p-2.5 text-sm font-medium transition-all duration-200',
-                    activeSection === 'settings'
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md'
-                      : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                  )}
-                >
-                  <Settings className="h-5 w-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="bg-sidebar text-sidebar-foreground">
-                Configuracion
-              </TooltipContent>
-            </Tooltip>
-          ) : (
+          {/* Settings Button */}
+          {!collapsed && (
             <button
               onClick={() => onSectionChange('settings')}
               className={cn(
-                'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 mb-2',
                 activeSection === 'settings'
-                  ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md'
-                  : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/40'
+                  : 'text-gray-400 hover:bg-blue-600/20 hover:text-blue-300 hover:shadow-md hover:shadow-blue-600/30'
               )}
             >
               <Settings className="h-5 w-5" />
               <span>Configuracion</span>
             </button>
           )}
-        </div>
-        
-        {/* Footer */}
-        <div className={cn(
-          'absolute bottom-0 left-0 right-0 border-t border-sidebar-border p-4 transition-all duration-300',
-          collapsed ? 'px-2' : 'px-4'
-        )}>
-          <p className={cn(
-            'text-center text-xs text-sidebar-muted transition-all duration-300',
-            collapsed ? 'opacity-0' : 'opacity-100'
-          )}>
-            {collapsed ? '' : 'Gestion de Repuestos v1.0'}
-          </p>
+
+          {collapsed && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => onSectionChange('settings')}
+                  className={cn(
+                    'flex w-full items-center justify-center rounded-lg p-2.5 h-10 text-sm font-medium transition-all duration-200',
+                    activeSection === 'settings'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/40'
+                      : 'text-gray-400 hover:bg-blue-600/20 hover:text-blue-300'
+                  )}
+                >
+                  <Settings className="h-5 w-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-gray-900 text-gray-100 border-gray-700">
+                Configuracion
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* Collapse Toggle Button */}
+          {!collapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggleCollapse}
+              className={cn(
+                'w-full h-10 rounded-lg border border-gray-700 bg-gray-900 text-gray-400 shadow-md hover:bg-gray-800 hover:text-blue-400 hover:border-blue-500/50 transition-all duration-200'
+              )}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
+
+          {collapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggleCollapse}
+              className={cn(
+                'w-full h-10 rounded-lg border border-gray-700 bg-gray-900 text-gray-400 shadow-md hover:bg-gray-800 hover:text-blue-400 hover:border-blue-500/50 transition-all duration-200'
+              )}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </aside>
     </TooltipProvider>
