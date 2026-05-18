@@ -134,6 +134,11 @@
   transform: translateX(-4px);
 }
 
+/* Sidebar smooth transition */
+.sidebar-transition {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
