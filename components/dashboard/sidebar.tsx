@@ -78,16 +78,20 @@ export function Sidebar({ activeSection, onSectionChange, collapsed, onToggleCol
                 <button
                   onClick={() => onSectionChange(item.id)}
                   className={cn(
-                    'flex w-full items-center rounded-lg text-sm font-medium transition-all duration-200',
-                    collapsed ? 'justify-center p-2.5 h-10' : 'gap-3 px-3 py-2.5 h-auto',
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/40'
-                      : 'text-gray-400 hover:bg-blue-600/20 hover:text-blue-300 hover:shadow-md hover:shadow-blue-600/30'
+                    'flex w-full items-center text-sm font-medium transition-all duration-200 relative overflow-hidden',
+                    collapsed ? 'justify-center p-2.5 h-10 rounded-lg' : 'gap-3 px-4 py-3 h-auto rounded-r-full',
+                    isActive ? 'text-gray-200' : 'text-gray-500 hover:text-gray-400'
                   )}
                 >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  {isActive && !collapsed && (
+                    <div className="absolute inset-0 right-auto left-0 bg-gradient-to-r from-blue-600/0 to-blue-600 shadow-lg shadow-blue-600/50 pointer-events-none" style={{ width: '100%' }} />
+                  )}
+                  {isActive && !collapsed && (
+                    <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-blue-600 to-blue-600/20 shadow-lg shadow-blue-600/50 pointer-events-none" />
+                  )}
+                  <Icon className="h-5 w-5 flex-shrink-0 relative z-10" />
                   <span className={cn(
-                    'overflow-hidden whitespace-nowrap transition-all duration-300 text-left',
+                    'overflow-hidden whitespace-nowrap transition-all duration-300 text-left relative z-10',
                     collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
                   )}>
                     {item.label}
@@ -116,8 +120,11 @@ export function Sidebar({ activeSection, onSectionChange, collapsed, onToggleCol
             {/* Cotizaciones Section */}
             {!collapsed && (
               <>
-                <li className="pt-4 pb-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cotizaciones</p>
+                <li className="pt-6 pb-3">
+                  <div className="flex items-center gap-3">
+                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Cotizaciones</p>
+                    <div className="flex-1 h-px bg-gradient-to-r from-gray-600 to-transparent" />
+                  </div>
                 </li>
               </>
             )}
@@ -131,16 +138,20 @@ export function Sidebar({ activeSection, onSectionChange, collapsed, onToggleCol
                 <button
                   onClick={() => onSectionChange(item.id)}
                   className={cn(
-                    'flex w-full items-center rounded-lg text-sm font-medium transition-all duration-200',
-                    collapsed ? 'justify-center p-2.5 h-10' : 'gap-3 px-3 py-2.5 h-auto',
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/40'
-                      : 'text-gray-400 hover:bg-blue-600/20 hover:text-blue-300 hover:shadow-md hover:shadow-blue-600/30'
+                    'flex w-full items-center text-sm font-medium transition-all duration-200 relative overflow-hidden',
+                    collapsed ? 'justify-center p-2.5 h-10 rounded-lg' : 'gap-3 px-4 py-3 h-auto rounded-r-full',
+                    isActive ? 'text-gray-200' : 'text-gray-500 hover:text-gray-400'
                   )}
                 >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  {isActive && !collapsed && (
+                    <div className="absolute inset-0 right-auto left-0 bg-gradient-to-r from-blue-600/0 to-blue-600 shadow-lg shadow-blue-600/50 pointer-events-none" style={{ width: '100%' }} />
+                  )}
+                  {isActive && !collapsed && (
+                    <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-blue-600 to-blue-600/20 shadow-lg shadow-blue-600/50 pointer-events-none" />
+                  )}
+                  <Icon className="h-5 w-5 flex-shrink-0 relative z-10" />
                   <span className={cn(
-                    'overflow-hidden whitespace-nowrap transition-all duration-300 text-left',
+                    'overflow-hidden whitespace-nowrap transition-all duration-300 text-left relative z-10',
                     collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
                   )}>
                     {item.label}
@@ -178,14 +189,17 @@ export function Sidebar({ activeSection, onSectionChange, collapsed, onToggleCol
             <button
               onClick={() => onSectionChange('settings')}
               className={cn(
-                'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 mb-2',
+                'flex w-full items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 rounded-r-full relative overflow-hidden',
                 activeSection === 'settings'
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/40'
-                  : 'text-gray-400 hover:bg-blue-600/20 hover:text-blue-300 hover:shadow-md hover:shadow-blue-600/30'
+                  ? 'text-gray-200 border border-blue-600/50'
+                  : 'text-gray-500 border border-gray-600 hover:text-gray-400 hover:border-gray-500'
               )}
             >
-              <Settings className="h-5 w-5" />
-              <span>Configuracion</span>
+              {activeSection === 'settings' && (
+                <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-blue-600 to-blue-600/20 shadow-lg shadow-blue-600/50 pointer-events-none" />
+              )}
+              <Settings className="h-5 w-5 relative z-10" />
+              <span className="relative z-10">Configuracion</span>
             </button>
           )}
 
