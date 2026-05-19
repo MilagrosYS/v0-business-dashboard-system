@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Plus, Search, Trash2, X, Package, MapPin } from 'lucide-react'
+import { Plus, Search, Trash2, X, Package, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,6 +25,23 @@ import { cn } from '@/lib/utils'
 type ModalMode = 'create' | 'edit' | 'detail' | null
 
 const CATEGORIES = ['Filtración', 'Rodillos', 'Tuberías', 'Componentes', 'Accesorios', 'Otros']
+const ITEMS_PER_PAGE = 12
+
+// Color mapping for function badges
+const FUNCTION_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  'Sistema Presión': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  'Filtrado': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+  'Carga': { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
+  'Potencia Motor': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  'Tracción': { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  'Refrigeración': { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200' },
+  'Frenado': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+  'Sistema Hidráulico': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
+  'Rotación': { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
+  'Carga Batería': { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+}
+
+const DEFAULT_FUNCTION_COLOR = { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' }
 
 export function SpareParts() {
   const { spareParts, addSparePart, updateSparePart, deleteSparePart } = useDashboardStore()
@@ -33,6 +50,7 @@ export function SpareParts() {
   const [modalMode, setModalMode] = useState<ModalMode>(null)
   const [selectedPart, setSelectedPart] = useState<SparePart | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<SparePart | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   
   // Form state
@@ -70,7 +88,6 @@ export function SpareParts() {
   const filteredParts = useMemo(() => {
     let result = spareParts
     
-    // Filter by search
     if (search) {
       const searchLower = search.toLowerCase()
       const searchNormalized = normalizePartNumber(search).toLowerCase()
@@ -83,13 +100,22 @@ export function SpareParts() {
       )
     }
     
-    // Filter by category
     if (categoryFilter) {
       result = result.filter((p) => p.category === categoryFilter)
     }
     
     return result
   }, [spareParts, search, categoryFilter])
+  
+  // Pagination
+  const totalPages = Math.ceil(filteredParts.length / ITEMS_PER_PAGE)
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const endIndex = startIndex + ITEMS_PER_PAGE
+  const paginatedParts = filteredParts.slice(startIndex, endIndex)
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)))
+  }
   
   const openCreate = () => {
     setFormData({
@@ -106,7 +132,6 @@ export function SpareParts() {
     })
     setModalMode('create')
   }
-  
   const openEdit = (part: SparePart) => {
     setSelectedPart(part)
     setFormData({
@@ -156,6 +181,7 @@ export function SpareParts() {
       updateSparePart(selectedPart.id, partData)
     }
     closeModal()
+    setCurrentPage(1)
   }
   
   const handleDelete = (e: React.MouseEvent, part: SparePart) => {
@@ -167,15 +193,23 @@ export function SpareParts() {
     if (deleteConfirm) {
       deleteSparePart(deleteConfirm.id)
       setDeleteConfirm(null)
+      if (paginatedParts.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1)
+      }
     }
+  }
+  
+  const getFunctionColor = (func?: string) => {
+    return func && FUNCTION_COLORS[func] ? FUNCTION_COLORS[func] : DEFAULT_FUNCTION_COLOR
   }
   
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold text-foreground">Repuestos</h2>
-          <p className="text-muted-foreground">Gestion del catalogo de productos</p>
+          <p className="text-sm text-muted-foreground">{filteredParts.length} repuestos</p>
         </div>
         <Button onClick={openCreate} className="gap-2 bg-foreground text-background hover:bg-foreground/90">
           <Plus className="h-4 w-4" />
@@ -192,7 +226,10 @@ export function SpareParts() {
               <Input
                 placeholder="Buscar por numero de parte, codigo interno, descripcion o funcion..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value)
+                  setCurrentPage(1)
+                }}
                 className="pl-10"
               />
             </div>
@@ -202,7 +239,10 @@ export function SpareParts() {
                 <Button
                   variant={categoryFilter === '' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setCategoryFilter('')}
+                  onClick={() => {
+                    setCategoryFilter('')
+                    setCurrentPage(1)
+                  }}
                   className="text-xs"
                 >
                   Todas
@@ -212,7 +252,10 @@ export function SpareParts() {
                     key={cat}
                     variant={categoryFilter === cat ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setCategoryFilter(cat)}
+                    onClick={() => {
+                      setCategoryFilter(cat)
+                      setCurrentPage(1)
+                    }}
                     className="text-xs"
                   >
                     {cat}
@@ -234,78 +277,163 @@ export function SpareParts() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">Item</TableHead>
-                  <TableHead>Codigo Interno</TableHead>
-                  <TableHead>Numero de Parte</TableHead>
-                  <TableHead>Modelo</TableHead>
-                  <TableHead>Equipo</TableHead>
-                  <TableHead>Descripcion</TableHead>
-                  <TableHead>Funcion</TableHead>
-                  <TableHead>Medida</TableHead>
-                  <TableHead className="text-right">Precio</TableHead>
-                  <TableHead className="text-right">Cantidad</TableHead>
+                  <TableHead className="w-10 text-center">ITEM</TableHead>
+                  <TableHead>CÓDIGO INTERNO</TableHead>
+                  <TableHead>NÚMERO DE PARTE</TableHead>
+                  <TableHead>MODELO</TableHead>
+                  <TableHead>EQUIPO</TableHead>
+                  <TableHead>DESCRIPCIÓN</TableHead>
+                  <TableHead>FUNCIÓN</TableHead>
+                  <TableHead>MEDIDA</TableHead>
+                  <TableHead className="text-right">PRECIO</TableHead>
+                  <TableHead className="text-right">CANTIDAD</TableHead>
                   <TableHead className="w-16"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredParts.length === 0 ? (
+                {paginatedParts.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={11} className="h-24 text-center text-muted-foreground">
                       No se encontraron repuestos
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredParts.map((part, index) => (
-                    <TableRow 
-                      key={part.id} 
-                      className="table-row-hover cursor-pointer"
-                      onMouseEnter={() => setHoveredRow(part.id)}
-                      onMouseLeave={() => setHoveredRow(null)}
-                      onClick={() => openDetail(part)}
-                    >
-                      <TableCell className="font-mono text-sm text-muted-foreground">
-                        {index + 1}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">{part.internalCode}</TableCell>
-                      <TableCell className="font-mono text-sm font-medium text-primary">{part.partNumber}</TableCell>
-                      <TableCell className="text-sm">{part.model || '-'}</TableCell>
-                      <TableCell className="text-sm">{part.equipment || '-'}</TableCell>
-                      <TableCell className="max-w-32 truncate text-sm">{part.description}</TableCell>
-                      <TableCell className="max-w-32 truncate text-sm text-muted-foreground">{part.function || '-'}</TableCell>
-                      <TableCell className="text-sm">{part.measurement || '-'}</TableCell>
-                      <TableCell className="text-right font-medium text-sm">
-                        ${part.price.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-sm">
-                        {part.quantity}
-                      </TableCell>
-                      <TableCell>
-                        <div 
-                          className="flex gap-1 justify-end"
-                          style={{
-                            opacity: hoveredRow === part.id ? 1 : 0,
-                            transition: 'opacity 0.15s ease'
-                          }}
-                        >
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDelete(e, part)
+                  paginatedParts.map((part, index) => {
+                    const functionColor = getFunctionColor(part.function)
+                    return (
+                      <TableRow 
+                        key={part.id} 
+                        className="table-row-hover cursor-pointer"
+                        onMouseEnter={() => setHoveredRow(part.id)}
+                        onMouseLeave={() => setHoveredRow(null)}
+                        onClick={() => openDetail(part)}
+                      >
+                        <TableCell className="text-center font-mono text-sm text-muted-foreground">
+                          {startIndex + index + 1}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm">{part.internalCode}</TableCell>
+                        <TableCell className="font-mono text-sm font-medium text-primary">{part.partNumber}</TableCell>
+                        <TableCell className="text-sm">{part.model || '-'}</TableCell>
+                        <TableCell className="text-sm">{part.equipment || '-'}</TableCell>
+                        <TableCell className="max-w-40 truncate text-sm">{part.description}</TableCell>
+                        <TableCell>
+                          {part.function ? (
+                            <span className={cn(
+                              'inline-block px-2.5 py-1 rounded-full text-xs font-semibold border',
+                              functionColor.bg,
+                              functionColor.text,
+                              functionColor.border
+                            )}>
+                              {part.function}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm">{part.measurement || '-'}</TableCell>
+                        <TableCell className="text-right font-medium text-sm">
+                          ${part.price.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm font-semibold">
+                          {part.quantity}
+                        </TableCell>
+                        <TableCell>
+                          <div 
+                            className="flex gap-1 justify-end"
+                            style={{
+                              opacity: hoveredRow === part.id ? 1 : 0,
+                              transition: 'opacity 0.15s ease'
                             }}
-                            className="h-8 px-2 text-muted-foreground hover:text-destructive"
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDelete(e, part)
+                              }}
+                              className="h-8 px-2 text-muted-foreground hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
                 )}
               </TableBody>
             </Table>
           </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-border pt-4 mt-4">
+              <div className="text-sm text-muted-foreground">
+                {`Mostrando ${filteredParts.length === 0 ? 0 : startIndex + 1} a ${Math.min(endIndex, filteredParts.length)} de ${filteredParts.length} registros`}
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                
+                {/* Page numbers */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      Math.abs(page - currentPage) <= 1 ||
+                      (page === 2 && currentPage === 1) ||
+                      (page === totalPages - 1 && currentPage === totalPages)
+                    ) {
+                      return (
+                        <Button
+                          key={page}
+                          variant={page === currentPage ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handlePageChange(page)}
+                          className={cn(
+                            'h-8 w-8 p-0 text-xs',
+                            page === currentPage && 'bg-foreground text-background'
+                          )}
+                        >
+                          {page}
+                        </Button>
+                      )
+                    } else if (
+                      (page === 2 && currentPage > 3) ||
+                      (page === totalPages - 1 && currentPage < totalPages - 2)
+                    ) {
+                      return (
+                        <span key={page} className="text-xs text-muted-foreground">
+                          ...
+                        </span>
+                      )
+                    }
+                    return null
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
       
