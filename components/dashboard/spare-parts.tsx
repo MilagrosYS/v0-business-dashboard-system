@@ -27,21 +27,12 @@ type ModalMode = 'create' | 'edit' | 'detail' | null
 const CATEGORIES = ['Filtración', 'Rodillos', 'Tuberías', 'Componentes', 'Accesorios', 'Otros']
 const ITEMS_PER_PAGE = 12
 
-// Color mapping for function badges
-const FUNCTION_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  'Sistema Presión': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  'Filtrado': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-  'Carga': { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
-  'Potencia Motor': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-  'Tracción': { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-  'Refrigeración': { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200' },
-  'Frenado': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
-  'Sistema Hidráulico': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
-  'Rotación': { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
-  'Carga Batería': { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+// Stock level color mapping - only for CANTIDAD column
+const getStockColor = (quantity: number) => {
+  if (quantity <= 5) return 'text-red-600' // Bajo stock
+  if (quantity <= 15) return 'text-orange-500' // Medio stock
+  return 'text-green-600' // Buen stock
 }
-
-const DEFAULT_FUNCTION_COLOR = { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' }
 
 export function SpareParts() {
   const { spareParts, addSparePart, updateSparePart, deleteSparePart } = useDashboardStore()
@@ -199,10 +190,6 @@ export function SpareParts() {
     }
   }
   
-  const getFunctionColor = (func?: string) => {
-    return func && FUNCTION_COLORS[func] ? FUNCTION_COLORS[func] : DEFAULT_FUNCTION_COLOR
-  }
-  
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -233,34 +220,25 @@ export function SpareParts() {
                 className="pl-10"
               />
             </div>
-            <div>
-              <Label className="text-sm text-muted-foreground mb-2 block">Categoría</Label>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={categoryFilter === '' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    setCategoryFilter('')
+            <div className="flex items-end gap-4">
+              <div className="flex-1">
+                <Label htmlFor="category-filter" className="text-sm text-muted-foreground mb-2 block">Categoría (Todos)</Label>
+                <select
+                  id="category-filter"
+                  value={categoryFilter}
+                  onChange={(e) => {
+                    setCategoryFilter(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="text-xs"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
-                  Todas
-                </Button>
-                {CATEGORIES.map((cat) => (
-                  <Button
-                    key={cat}
-                    variant={categoryFilter === cat ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => {
-                      setCategoryFilter(cat)
-                      setCurrentPage(1)
-                    }}
-                    className="text-xs"
-                  >
-                    {cat}
-                  </Button>
-                ))}
+                  <option value="">Todas las categorías</option>
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -299,7 +277,6 @@ export function SpareParts() {
                   </TableRow>
                 ) : (
                   paginatedParts.map((part, index) => {
-                    const functionColor = getFunctionColor(part.function)
                     return (
                       <TableRow 
                         key={part.id} 
@@ -316,25 +293,12 @@ export function SpareParts() {
                         <TableCell className="text-sm">{part.model || '-'}</TableCell>
                         <TableCell className="text-sm">{part.equipment || '-'}</TableCell>
                         <TableCell className="max-w-40 truncate text-sm">{part.description}</TableCell>
-                        <TableCell>
-                          {part.function ? (
-                            <span className={cn(
-                              'inline-block px-2.5 py-1 rounded-full text-xs font-semibold border',
-                              functionColor.bg,
-                              functionColor.text,
-                              functionColor.border
-                            )}>
-                              {part.function}
-                            </span>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{part.function || '-'}</TableCell>
                         <TableCell className="text-sm">{part.measurement || '-'}</TableCell>
                         <TableCell className="text-right font-medium text-sm">
                           ${part.price.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm font-semibold">
+                        <TableCell className={`text-right font-mono text-sm font-bold ${getStockColor(part.quantity)}`}>
                           {part.quantity}
                         </TableCell>
                         <TableCell>
