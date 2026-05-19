@@ -17,6 +17,7 @@ const sampleCompanies: Company[] = [
     email: 'compras@cerroverde.pe',
     lastActivity: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+    status: 'active',
   },
   {
     id: generateId(),
@@ -28,6 +29,7 @@ const sampleCompanies: Company[] = [
     email: 'adquisiciones@southernperu.com.pe',
     lastActivity: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
     createdAt: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000),
+    status: 'active',
   },
   {
     id: generateId(),
@@ -39,6 +41,7 @@ const sampleCompanies: Company[] = [
     email: 'repuestos@kmmp.com.pe',
     lastActivity: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
     createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+    status: 'active',
   },
   {
     id: generateId(),
@@ -50,6 +53,7 @@ const sampleCompanies: Company[] = [
     email: 'partes@ferreyros.com.pe',
     lastActivity: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
     createdAt: new Date(Date.now() - 400 * 24 * 60 * 60 * 1000),
+    status: 'inactive',
   },
   {
     id: generateId(),
@@ -61,6 +65,7 @@ const sampleCompanies: Company[] = [
     email: 'ventas@volvo.pe',
     lastActivity: new Date(Date.now() - 150 * 24 * 60 * 60 * 1000),
     createdAt: new Date(Date.now() - 500 * 24 * 60 * 60 * 1000),
+    status: 'active',
   },
 ]
 

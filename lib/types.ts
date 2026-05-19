@@ -8,6 +8,7 @@ export interface Company {
   email: string
   lastActivity: Date
   createdAt: Date
+  status: 'active' | 'inactive'
 }
 
 export interface SparePart {

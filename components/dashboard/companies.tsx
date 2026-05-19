@@ -43,6 +43,7 @@ const statusLabels: Record<ActivityStatus, string> = {
 export function Companies() {
   const { companies, addCompany, updateCompany, deleteCompany } = useDashboardStore()
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [modalMode, setModalMode] = useState<ModalMode>(null)
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<Company | null>(null)
@@ -56,6 +57,7 @@ export function Companies() {
     contact: '',
     phone: '',
     email: '',
+    status: 'active' as 'active' | 'inactive',
   })
   
   // Check if form has required data and has changed (for edit mode)
@@ -67,23 +69,35 @@ export function Companies() {
       formData.address !== selectedCompany.address ||
       formData.contact !== selectedCompany.contact ||
       formData.phone !== selectedCompany.phone ||
-      formData.email !== selectedCompany.email
+      formData.email !== selectedCompany.email ||
+      formData.status !== selectedCompany.status
     )
   )
   const canSubmit = isFormValid && hasChanges
   
   const filteredCompanies = useMemo(() => {
-    if (!search) return companies
-    const searchLower = search.toLowerCase()
-    return companies.filter(
-      (c) =>
-        c.name.toLowerCase().includes(searchLower) ||
-        c.ruc.includes(search)
-    )
-  }, [companies, search])
+    let result = companies
+    
+    // Filter by search
+    if (search) {
+      const searchLower = search.toLowerCase()
+      result = result.filter(
+        (c) =>
+          c.name.toLowerCase().includes(searchLower) ||
+          c.ruc.includes(search)
+      )
+    }
+    
+    // Filter by status
+    if (statusFilter !== 'all') {
+      result = result.filter((c) => c.status === statusFilter)
+    }
+    
+    return result
+  }, [companies, search, statusFilter])
   
   const openCreate = () => {
-    setFormData({ name: '', ruc: '', address: '', contact: '', phone: '', email: '' })
+    setFormData({ name: '', ruc: '', address: '', contact: '', phone: '', email: '', status: 'active' })
     setModalMode('create')
   }
   
@@ -97,6 +111,7 @@ export function Companies() {
       contact: company.contact,
       phone: company.phone,
       email: company.email,
+      status: company.status,
     })
     setModalMode('edit')
   }
@@ -156,17 +171,34 @@ export function Companies() {
         </Button>
       </div>
       
-      {/* Search */}
+      {/* Search and Filters */}
       <Card className="border border-border bg-card shadow-sm">
         <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nombre de empresa o RUC..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nombre de empresa o RUC..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex items-end gap-4">
+              <div className="flex-1">
+                <Label htmlFor="status-filter" className="text-sm text-muted-foreground mb-2 block">Estado</Label>
+                <select
+                  id="status-filter"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="all">Todos</option>
+                  <option value="active">Activo</option>
+                  <option value="inactive">Inactivo</option>
+                </select>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -180,9 +212,9 @@ export function Companies() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nombre de Empresa</TableHead>
+                <TableHead className="w-40">Razón Social</TableHead>
                 <TableHead>RUC</TableHead>
-                <TableHead>Direccion</TableHead>
+                <TableHead className="w-48">Dirección</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Telefono</TableHead>
                 <TableHead>Contacto</TableHead>
@@ -349,18 +381,34 @@ export function Companies() {
                 </div>
               </div>
               
-              {/* Row 4: Contact */}
-              <div className="space-y-2">
-                <Label htmlFor="contact" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Contacto Directo
-                </Label>
-                <Input
-                  id="contact"
-                  value={formData.contact}
-                  onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                  placeholder="Ingresa nombre de contacto"
-                  className="text-sm"
-                />
+              {/* Row 4: Contact and Status */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contact" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Contacto Directo
+                  </Label>
+                  <Input
+                    id="contact"
+                    value={formData.contact}
+                    onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                    placeholder="Ingresa nombre de contacto"
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Estado
+                  </Label>
+                  <select
+                    id="status"
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="active">Activo</option>
+                    <option value="inactive">Inactivo</option>
+                  </select>
+                </div>
               </div>
               
               {/* Action Buttons */}
