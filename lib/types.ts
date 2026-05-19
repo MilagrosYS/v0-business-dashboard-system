@@ -17,9 +17,12 @@ export interface SparePart {
   model: string
   equipment: string
   description: string
+  function?: string
+  category?: string
   measurement: string
   price: number
   quantity: number
+  location?: string
 }
 
 export interface StockMovement {
