@@ -6,8 +6,8 @@ import { useDashboardStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-// Background image URL - change this to your preferred night landscape image
-const BACKGROUND_IMAGE_URL = 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920&h=1080&fit=crop&q=80'
+// Background image URL - blue mountain landscape
+const BACKGROUND_IMAGE_URL = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop&q=80'
 
 export function Login() {
   const { login } = useDashboardStore()
