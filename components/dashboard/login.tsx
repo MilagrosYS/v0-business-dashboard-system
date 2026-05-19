@@ -65,25 +65,25 @@ export function Login() {
       </div>
       
       {/* Glassmorphic card */}
-      <div className="relative z-10 w-full max-w-sm space-y-8">
-        {/* Logo section */}
-        <div className="flex flex-col items-center space-y-6">
-          <div className="h-24 w-32">
-            <img
-              src="/vr-logo.png"
-              alt="VR Maquinarias Inversiones"
-              className="h-full w-full object-contain"
-              width={128}
-              height={96}
-            />
-          </div>
-          <p className="text-center text-sm font-medium tracking-wide text-white/90">
-            Sistema de Gestión
-          </p>
-        </div>
-        
+      <div className="relative z-10 w-full max-w-sm">
         {/* Form card with glassmorphism */}
-        <div className="rounded-3xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-xl">
+        <div className="rounded-3xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-xl space-y-6">
+          {/* Logo section inside card */}
+          <div className="flex flex-col items-center space-y-4 pb-2">
+            <div className="h-20 w-28">
+              <img
+                src="/vr-logo.png"
+                alt="VR Maquinarias Inversiones"
+                className="h-full w-full object-contain"
+                width={112}
+                height={80}
+              />
+            </div>
+            <p className="text-center text-xs font-medium tracking-wide text-white/80">
+              Sistema de Gestión
+            </p>
+          </div>
+          
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Usuario field */}
             <div className="space-y-2">
