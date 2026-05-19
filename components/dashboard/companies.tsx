@@ -58,6 +58,9 @@ export function Companies() {
     phone: '',
     email: '',
     status: 'active' as 'active' | 'inactive',
+    emails: [] as string[],
+    phones: [] as string[],
+    assignedContacts: [] as { name: string; role: string }[],
   })
   
   // Check if form has required data and has changed (for edit mode)
@@ -97,7 +100,18 @@ export function Companies() {
   }, [companies, search, statusFilter])
   
   const openCreate = () => {
-    setFormData({ name: '', ruc: '', address: '', contact: '', phone: '', email: '', status: 'active' })
+    setFormData({ 
+      name: '', 
+      ruc: '', 
+      address: '', 
+      contact: '', 
+      phone: '', 
+      email: '', 
+      status: 'active',
+      emails: [],
+      phones: [],
+      assignedContacts: [],
+    })
     setModalMode('create')
   }
   
@@ -112,6 +126,9 @@ export function Companies() {
       phone: company.phone,
       email: company.email,
       status: company.status,
+      emails: company.emails || [company.email],
+      phones: company.phones || [company.phone],
+      assignedContacts: company.assignedContacts || [],
     })
     setModalMode('edit')
   }
