@@ -8,6 +8,7 @@ export interface Company {
   email: string
   lastActivity: Date
   createdAt: Date
+  status: 'active' | 'inactive'
 }
 
 export interface SparePart {
@@ -17,9 +18,12 @@ export interface SparePart {
   model: string
   equipment: string
   description: string
+  function?: string
+  category?: string
   measurement: string
   price: number
   quantity: number
+  location?: string
 }
 
 export interface StockMovement {
