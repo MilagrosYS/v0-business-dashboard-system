@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useMemo } from 'react'
-import { User, Settings as SettingsIcon, Save, Eye, EyeOff, Check, Building2, CreditCard, Plus, Trash2, Camera } from 'lucide-react'
+import { User, Lock, Settings as SettingsIcon, Save, Eye, EyeOff, Check, Building2, CreditCard, Trash2, Camera } from 'lucide-react'
 import { useDashboardStore } from '@/lib/store'
 import { BankAccount } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -178,44 +178,39 @@ export function Settings() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Configuracion</h2>
-        <p className="text-muted-foreground">Administra tu perfil y preferencias del sistema</p>
+        <h2 className="text-2xl font-bold text-primary">CONFIGURACIÓN</h2>
       </div>
       
+      {/* Profile & Security Section - Side by Side */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Profile Card */}
-        <Card>
+        <Card className="border-l-4 border-l-primary">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <User className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Perfil</CardTitle>
-                <CardDescription>Actualiza tu informacion de cuenta</CardDescription>
-              </div>
+              <User className="h-5 w-5 text-primary" />
+              <CardTitle className="text-base font-semibold">Perfil de Usuario</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
+          <CardContent className="space-y-6">
+            <div className="flex gap-4">
               <div className="relative">
                 {profileImage ? (
                   <img 
                     src={profileImage} 
                     alt="Perfil" 
-                    className="h-16 w-16 rounded-full object-cover"
+                    className="h-20 w-20 rounded object-cover"
                   />
                 ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
+                  <div className="flex h-20 w-20 items-center justify-center rounded bg-primary/10 text-xl font-bold text-primary">
                     {name.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
+                  className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90 text-xs"
                 >
-                  <Camera className="h-3.5 w-3.5" />
+                  <Camera className="h-3 w-3" />
                 </button>
                 <input
                   ref={fileInputRef}
@@ -225,33 +220,28 @@ export function Settings() {
                   className="hidden"
                 />
               </div>
-              <div>
-                <p className="font-medium">{name}</p>
-                <p className="text-sm text-muted-foreground">@{username}</p>
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase">Nombre Completo</p>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Luis"
+                  className="mt-1 border-0 border-b border-border rounded-none px-0 py-2"
+                />
+                
+                <p className="text-xs font-semibold text-muted-foreground uppercase mt-6">Nombre de Usuario</p>
+                <Input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="admin"
+                  className="mt-1 border-0 border-b border-border rounded-none px-0 py-2"
+                />
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nombre</label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Tu nombre"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Usuario</label>
-              <Input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Tu usuario"
-              />
             </div>
             
             <Button 
               onClick={handleSaveProfile} 
-              className="w-full transition-opacity"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
               disabled={!hasProfileChanges}
             >
               {profileSaved ? (
@@ -262,35 +252,42 @@ export function Settings() {
               ) : (
                 <span className="flex items-center gap-2">
                   <Save className="h-4 w-4" />
-                  Guardar Perfil
+                  GUARDAR CAMBIOS
                 </span>
               )}
             </Button>
           </CardContent>
         </Card>
         
-        {/* Password Card */}
-        <Card>
+        {/* Security Card */}
+        <Card className="border-l-4 border-l-primary">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <User className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Cambiar Contrasena</CardTitle>
-                <CardDescription>Actualiza tu contrasena de acceso</CardDescription>
-              </div>
+              <Lock className="h-5 w-5 text-primary" />
+              <CardTitle className="text-base font-semibold">Seguridad</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nueva Contrasena</label>
+          <CardContent className="space-y-6">
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Contraseña Actual</label>
+              <div className="relative">
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  className="pr-10"
+                  disabled
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Nueva Contraseña</label>
               <div className="relative">
                 <Input
                   type={showNewPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Ingresa nueva contrasena"
+                  placeholder="Ingresa nueva contraseña"
                   className="pr-10"
                 />
                 <button
@@ -303,14 +300,14 @@ export function Settings() {
               </div>
             </div>
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Confirmar Nueva Contrasena</label>
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Confirmar</label>
               <div className="relative">
                 <Input
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirma nueva contrasena"
+                  placeholder="Confirma nueva contraseña"
                   className="pr-10"
                 />
                 <button
@@ -331,283 +328,340 @@ export function Settings() {
             
             {passwordSuccess && (
               <div className="rounded-lg bg-green-500/10 p-3 text-sm text-green-600">
-                Contrasena actualizada correctamente!
+                Contraseña actualizada correctamente!
               </div>
             )}
             
+            <p className="text-xs text-muted-foreground flex gap-1">
+              <span className="text-primary">ⓘ</span>
+              La contraseña debe tener al menos 8 caracteres.
+            </p>
+            
             <Button 
               onClick={handleChangePassword} 
-              className="w-full transition-opacity"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
               disabled={!newPassword || !confirmPassword}
             >
-              <Save className="mr-2 h-4 w-4" />
-              Cambiar Contrasena
+              {passwordSuccess ? (
+                <span className="flex items-center gap-2">
+                  <Check className="h-4 w-4" />
+                  Guardado!
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
+                  GUARDAR CAMBIOS
+                </span>
+              )}
             </Button>
           </CardContent>
         </Card>
-        
-        {/* System Settings Card */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <SettingsIcon className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Configuracion del Sistema</CardTitle>
-                <CardDescription>Configura las preferencias de negocio</CardDescription>
-              </div>
+      
+      {/* System Settings Card */}
+      <Card className="border-l-4 border-l-primary">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <SettingsIcon className="h-5 w-5 text-primary" />
+            <CardTitle className="text-base font-semibold">Configuración del Sistema</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">IGV (%)</label>
+              <Input
+                type="number"
+                step="0.1"
+                value={igvPercentage}
+                onChange={(e) => setIgvPercentage(e.target.value)}
+                placeholder="18"
+              />
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 md:grid-cols-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">IGV (%)</label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={igvPercentage}
-                  onChange={(e) => setIgvPercentage(e.target.value)}
-                  placeholder="18"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Moneda por Defecto</label>
-                <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="USD">USD ($)</option>
-                  <option value="PEN">PEN (S/)</option>
-                </select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tipo de Cambio (PEN/USD)</label>
+            
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Moneda por Defecto</label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="USD">Dólares (USD)</option>
+                <option value="PEN">Soles (PEN)</option>
+              </select>
+            </div>
+            
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Tipo de Cambio</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                 <Input
                   type="number"
                   step="0.01"
                   value={exchangeRate}
                   onChange={(e) => setExchangeRate(e.target.value)}
-                  placeholder="3.75"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Vendedor por Defecto</label>
-                <Input
-                  value={sellerName}
-                  onChange={(e) => setSellerName(e.target.value)}
-                  placeholder="Nombre del vendedor"
+                  placeholder="3.4"
+                  className="pl-7"
                 />
               </div>
             </div>
-            
-            <div className="mt-6">
-              <Button 
-                onClick={handleSaveSettings}
-                disabled={!hasSettingsChanges}
-                className="transition-opacity"
-              >
-                {settingsSaved ? (
-                  <span className="flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    Guardado!
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Save className="h-4 w-4" />
-                    Guardar Configuracion
-                  </span>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Business Info Card */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
+          </div>
+          
+          <Button 
+            onClick={handleSaveSettings}
+            disabled={!hasSettingsChanges}
+            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
+          >
+            {settingsSaved ? (
+              <span className="flex items-center gap-2">
+                <Check className="h-4 w-4" />
+                Guardado!
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                GUARDAR CAMBIOS
+              </span>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+      
+      {/* Business Info Card */}
+      <Card className="border-l-4 border-l-primary">
+        <CardHeader>
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <Building2 className="h-5 w-5 text-primary" />
-              </div>
+              <Building2 className="h-5 w-5 text-primary" />
               <div>
-                <CardTitle className="text-lg">Informacion de la Empresa</CardTitle>
-                <CardDescription>Datos que apareceran en las cotizaciones PDF</CardDescription>
+                <CardTitle className="text-base font-semibold">Información de la Empresa</CardTitle>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Nombre de Empresa</label>
-                <Input
-                  value={businessInfo.companyName}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, companyName: e.target.value })}
-                  placeholder="Nombre de la empresa"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">RUC</label>
-                <Input
-                  value={businessInfo.ruc}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, ruc: e.target.value })}
-                  placeholder="RUC de la empresa"
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium">Direccion Arequipa</label>
-                <Input
-                  value={businessInfo.addressArequipa}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, addressArequipa: e.target.value })}
-                  placeholder="Direccion en Arequipa"
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium">Direccion Lima</label>
-                <Input
-                  value={businessInfo.addressLima}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, addressLima: e.target.value })}
-                  placeholder="Direccion en Lima"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
-                <Input
-                  type="email"
-                  value={businessInfo.email}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, email: e.target.value })}
-                  placeholder="Email de contacto"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Telefono</label>
-                <Input
-                  value={businessInfo.phone}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, phone: e.target.value })}
-                  placeholder="Telefono de contacto"
-                />
-              </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Company Basic Info */}
+          <div className="grid gap-4 md:grid-cols-2 pb-4 border-b">
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Razón Social</label>
+              <Input
+                value={businessInfo.companyName}
+                onChange={(e) => setBusinessInfo({ ...businessInfo, companyName: e.target.value })}
+                placeholder="MACHINA ERP INDUSTRIAL S.A.C."
+              />
             </div>
             
-            <div className="mt-6">
-              <Button 
-                onClick={handleSaveBusinessInfo}
-                disabled={!hasBusinessChanges}
-                className="transition-opacity"
-              >
-                {businessSaved ? (
-                  <span className="flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    Guardado!
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Save className="h-4 w-4" />
-                    Guardar Informacion
-                  </span>
-                )}
-              </Button>
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">RUC</label>
+              <Input
+                value={businessInfo.ruc}
+                onChange={(e) => setBusinessInfo({ ...businessInfo, ruc: e.target.value })}
+                placeholder="20601234567"
+              />
             </div>
-          </CardContent>
-        </Card>
-        
-        {/* Bank Accounts Card */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
+          </div>
+          
+          {/* Addresses */}
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <CreditCard className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Cuentas Bancarias</CardTitle>
-                  <CardDescription>Cuentas para mostrar en cotizaciones</CardDescription>
-                </div>
-              </div>
-              <Button onClick={addBankAccount} variant="outline" size="sm">
-                <Plus className="mr-1 h-4 w-4" />
-                Agregar
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Dirección</label>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-primary text-xs font-semibold"
+                onClick={() => {}}
+              >
+                + AGREGAR
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {bankAccounts.map((account, index) => (
-                <div key={index} className="grid gap-4 rounded-lg border border-border p-4 md:grid-cols-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Banco</label>
-                    <Input
-                      value={account.bankName}
-                      onChange={(e) => updateBankAccount(index, 'bankName', e.target.value)}
-                      placeholder="Nombre del banco"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">N° Cuenta</label>
-                    <Input
-                      value={account.accountNumber}
-                      onChange={(e) => updateBankAccount(index, 'accountNumber', e.target.value)}
-                      placeholder="Numero de cuenta"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">CCI (opcional)</label>
+            
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase">Sede Lima</p>
+              <Input
+                value={businessInfo.addressLima}
+                onChange={(e) => setBusinessInfo({ ...businessInfo, addressLima: e.target.value })}
+                placeholder="Calle Los Metales 120, Urbanización Industrial, Lima"
+              />
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase">Sede AQP</p>
+              <Input
+                value={businessInfo.addressArequipa}
+                onChange={(e) => setBusinessInfo({ ...businessInfo, addressArequipa: e.target.value })}
+                placeholder="Av. Industrial 450, Parque Industrial, Arequipa"
+              />
+            </div>
+          </div>
+          
+          {/* Email */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Email</label>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-primary text-xs font-semibold"
+                onClick={() => {}}
+              >
+                + AGREGAR
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Input
+                type="email"
+                value={businessInfo.email}
+                onChange={(e) => setBusinessInfo({ ...businessInfo, email: e.target.value })}
+                placeholder="contacto@machina-erp.pe"
+              />
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          
+          {/* Phone */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Teléfono</label>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-primary text-xs font-semibold"
+                onClick={() => {}}
+              >
+                + AGREGAR
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Input
+                value={businessInfo.phone}
+                onChange={(e) => setBusinessInfo({ ...businessInfo, phone: e.target.value })}
+                placeholder="+51 987 654 321"
+              />
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={handleSaveBusinessInfo}
+            disabled={!hasBusinessChanges}
+            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
+          >
+            {businessSaved ? (
+              <span className="flex items-center gap-2">
+                <Check className="h-4 w-4" />
+                Guardado!
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                GUARDAR CAMBIOS
+              </span>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+      
+      {/* Bank Accounts Card */}
+      <Card className="border-l-4 border-l-primary">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CreditCard className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle className="text-base font-semibold">Cuentas Bancarias</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">Cuentas para mostrar en cotizaciones</p>
+              </div>
+            </div>
+            <Button 
+              onClick={addBankAccount} 
+              variant="ghost" 
+              size="sm"
+              className="text-primary text-xs font-semibold"
+            >
+              + AGREGAR
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {bankAccounts.map((account, index) => (
+            <div key={index} className="border rounded-lg p-4 space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">Banco</label>
+                  <Input
+                    value={account.bankName}
+                    onChange={(e) => updateBankAccount(index, 'bankName', e.target.value)}
+                    placeholder="BCP"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">Nº Cuenta</label>
+                  <Input
+                    value={account.accountNumber}
+                    onChange={(e) => updateBankAccount(index, 'accountNumber', e.target.value)}
+                    placeholder="215-0578-2429-1-33"
+                  />
+                </div>
+                <div className="space-y-3 flex items-end justify-between">
+                  <div className="flex-1 space-y-3">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">CCI (Opcional)</label>
                     <Input
                       value={account.cci || ''}
                       onChange={(e) => updateBankAccount(index, 'cci', e.target.value)}
-                      placeholder="Codigo interbancario"
+                      placeholder="0022151057842429133"
                     />
                   </div>
-                  <div className="flex items-end">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setBankToDeleteIndex(index)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setBankToDeleteIndex(index)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-              ))}
-              
-              {bankAccounts.length === 0 && (
-                <p className="text-center text-sm text-muted-foreground">
-                  No hay cuentas bancarias configuradas
-                </p>
-              )}
+              </div>
             </div>
-            
-            <div className="mt-6">
-              <Button 
-                onClick={handleSaveBankAccounts}
-                disabled={!hasBankChanges}
-                className="transition-opacity"
-              >
-                {banksSaved ? (
-                  <span className="flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    Guardado!
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Save className="h-4 w-4" />
-                    Guardar Cuentas
-                  </span>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          ))}
+          
+          {bankAccounts.length === 0 && (
+            <p className="text-center text-sm text-muted-foreground py-8">
+              No hay cuentas bancarias configuradas
+            </p>
+          )}
+          
+          <Button 
+            onClick={handleSaveBankAccounts}
+            disabled={!hasBankChanges}
+            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold mt-6"
+          >
+            {banksSaved ? (
+              <span className="flex items-center gap-2">
+                <Check className="h-4 w-4" />
+                Guardado!
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                GUARDAR CUENTAS
+              </span>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
       </div>
       
       {/* Bank Account Delete Confirmation */}

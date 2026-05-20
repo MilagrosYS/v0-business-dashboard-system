@@ -1,15 +1,16 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, LogOut } from 'lucide-react'
+import { ChevronDown, LogOut, Settings as SettingsIcon } from 'lucide-react'
 import { useDashboardStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
 
 interface HeaderProps {
   sidebarCollapsed?: boolean
+  onNavigateToSettings?: () => void
 }
 
-export function Header({ sidebarCollapsed = false }: HeaderProps) {
+export function Header({ sidebarCollapsed = false, onNavigateToSettings }: HeaderProps) {
   const { userProfile, logout } = useDashboardStore()
   const [showDropdown, setShowDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -60,9 +61,21 @@ export function Header({ sidebarCollapsed = false }: HeaderProps) {
           <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
         </button>
         
-        {/* Dropdown Menu - Only Cerrar Sesion */}
+        {/* Dropdown Menu - Settings & Cerrar Sesion */}
         {showDropdown && (
           <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-border bg-card py-1 shadow-lg">
+            {onNavigateToSettings && (
+              <button
+                onClick={() => {
+                  setShowDropdown(false)
+                  onNavigateToSettings()
+                }}
+                className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted"
+              >
+                <SettingsIcon className="h-4 w-4" />
+                Configuración
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="flex w-full items-center gap-3 px-4 py-2 text-sm text-destructive hover:bg-muted"

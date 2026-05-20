@@ -55,6 +55,7 @@ export default function Dashboard() {
       />
       <Header 
         sidebarCollapsed={sidebarCollapsed}
+        onNavigateToSettings={() => setActiveSection('settings')}
       />
       
       <main className={cn(
