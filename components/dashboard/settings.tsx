@@ -176,12 +176,76 @@ export function Settings() {
   
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-primary">CONFIGURACIÓN</h2>
-      </div>
+      {/* System Settings Card - FIRST */}
+      <Card className="border-l-4 border-l-primary">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <SettingsIcon className="h-5 w-5 text-primary" />
+            <CardTitle className="text-base font-semibold">Configuración del Sistema</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">IGV (%)</label>
+              <Input
+                type="number"
+                step="0.1"
+                value={igvPercentage}
+                onChange={(e) => setIgvPercentage(e.target.value)}
+                placeholder="18"
+              />
+            </div>
+            
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Moneda por Defecto</label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="USD">Dólares (USD)</option>
+                <option value="PEN">Soles (PEN)</option>
+              </select>
+            </div>
+            
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Tipo de Cambio</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={exchangeRate}
+                  onChange={(e) => setExchangeRate(e.target.value)}
+                  placeholder="3.4"
+                  className="pl-7"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={handleSaveSettings}
+            disabled={!hasSettingsChanges}
+            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
+          >
+            {settingsSaved ? (
+              <span className="flex items-center gap-2">
+                <Check className="h-4 w-4" />
+                Guardado!
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                GUARDAR CAMBIOS
+              </span>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
       
-      {/* Profile & Security Section - Side by Side */}
+      {/* Profile & Security Section - Side by Side - SECOND */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Profile Card */}
         <Card className="border-l-4 border-l-primary">
@@ -356,75 +420,7 @@ export function Settings() {
             </Button>
           </CardContent>
         </Card>
-      
-      {/* System Settings Card */}
-      <Card className="border-l-4 border-l-primary">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <SettingsIcon className="h-5 w-5 text-primary" />
-            <CardTitle className="text-base font-semibold">Configuración del Sistema</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="space-y-3">
-              <label className="text-xs font-semibold text-muted-foreground uppercase">IGV (%)</label>
-              <Input
-                type="number"
-                step="0.1"
-                value={igvPercentage}
-                onChange={(e) => setIgvPercentage(e.target.value)}
-                placeholder="18"
-              />
-            </div>
-            
-            <div className="space-y-3">
-              <label className="text-xs font-semibold text-muted-foreground uppercase">Moneda por Defecto</label>
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="USD">Dólares (USD)</option>
-                <option value="PEN">Soles (PEN)</option>
-              </select>
-            </div>
-            
-            <div className="space-y-3">
-              <label className="text-xs font-semibold text-muted-foreground uppercase">Tipo de Cambio</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={exchangeRate}
-                  onChange={(e) => setExchangeRate(e.target.value)}
-                  placeholder="3.4"
-                  className="pl-7"
-                />
-              </div>
-            </div>
-          </div>
-          
-          <Button 
-            onClick={handleSaveSettings}
-            disabled={!hasSettingsChanges}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
-          >
-            {settingsSaved ? (
-              <span className="flex items-center gap-2">
-                <Check className="h-4 w-4" />
-                Guardado!
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Save className="h-4 w-4" />
-                GUARDAR CAMBIOS
-              </span>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+      </div>
       
       {/* Business Info Card */}
       <Card className="border-l-4 border-l-primary">
@@ -662,7 +658,6 @@ export function Settings() {
           </Button>
         </CardContent>
       </Card>
-      </div>
       
       {/* Bank Account Delete Confirmation */}
       <AlertDialog open={bankToDeleteIndex !== null} onOpenChange={() => setBankToDeleteIndex(null)}>
