@@ -57,6 +57,22 @@ export function Companies() {
     assignedContacts: [] as { name: string; role: string }[],
   })
   
+  // State for adding new contact inline
+  const [newContactName, setNewContactName] = useState('')
+  const [newContactRole, setNewContactRole] = useState('')
+  const [showAddContact, setShowAddContact] = useState(false)
+  
+  // Helper to compare arrays
+  const arraysEqual = (a: string[], b: string[]) => {
+    if (a.length !== b.length) return false
+    return a.every((val, idx) => val === b[idx])
+  }
+  
+  const contactsEqual = (a: { name: string; role: string }[], b: { name: string; role: string }[]) => {
+    if (a.length !== b.length) return false
+    return a.every((val, idx) => val.name === b[idx].name && val.role === b[idx].role)
+  }
+  
   // Check if form has required data and has changed (for edit mode)
   const isFormValid = formData.name.trim() !== '' && formData.ruc.trim() !== ''
   const hasChanges = modalMode === 'create' ? true : (
@@ -66,7 +82,11 @@ export function Companies() {
       formData.address !== selectedCompany.address ||
       formData.contact !== selectedCompany.contact ||
       formData.phone !== selectedCompany.phone ||
-      formData.email !== selectedCompany.email
+      formData.email !== selectedCompany.email ||
+      !arraysEqual(formData.emails, selectedCompany.emails || []) ||
+      !arraysEqual(formData.phones, selectedCompany.phones || []) ||
+      !arraysEqual(formData.addresses, selectedCompany.addresses || []) ||
+      !contactsEqual(formData.assignedContacts, selectedCompany.assignedContacts || [])
     )
   )
   const canSubmit = isFormValid && hasChanges
@@ -109,12 +129,26 @@ export function Companies() {
       addresses: [],
       assignedContacts: [],
     })
+    setNewContactName('')
+    setNewContactRole('')
+    setShowAddContact(false)
     setModalMode('create')
   }
   
   const openEdit = (company: Company, e: React.MouseEvent) => {
     e.stopPropagation()
     setSelectedCompany(company)
+    // Properly load all existing data including arrays
+    const existingEmails = company.emails && company.emails.length > 0 
+      ? company.emails 
+      : (company.email ? [company.email] : [])
+    const existingPhones = company.phones && company.phones.length > 0 
+      ? company.phones 
+      : (company.phone ? [company.phone] : [])
+    const existingAddresses = company.addresses && company.addresses.length > 0 
+      ? company.addresses 
+      : (company.address ? [company.address] : [])
+    
     setFormData({
       name: company.name,
       ruc: company.ruc,
@@ -122,11 +156,14 @@ export function Companies() {
       contact: company.contact,
       phone: company.phone,
       email: company.email,
-      emails: company.emails || (company.email ? [company.email] : []),
-      phones: company.phones || (company.phone ? [company.phone] : []),
-      addresses: company.addresses || (company.address ? [company.address] : []),
+      emails: existingEmails,
+      phones: existingPhones,
+      addresses: existingAddresses,
       assignedContacts: company.assignedContacts || [],
     })
+    setNewContactName('')
+    setNewContactRole('')
+    setShowAddContact(false)
     setModalMode('edit')
   }
   
@@ -138,6 +175,9 @@ export function Companies() {
   const closeModal = () => {
     setModalMode(null)
     setSelectedCompany(null)
+    setNewContactName('')
+    setNewContactRole('')
+    setShowAddContact(false)
   }
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -552,23 +592,72 @@ export function Companies() {
                     ))}
                   </div>
                   
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full justify-center py-2 border border-dashed border-border rounded-lg"
-                    onClick={() => {
-                      const name = prompt('Nombre del contacto:')
-                      const role = prompt('Cargo del contacto:')
-                      if (name && role) {
-                        setFormData({ 
-                          ...formData, 
-                          assignedContacts: [...formData.assignedContacts, { name, role }] 
-                        })
-                      }
-                    }}
-                  >
-                    <UserPlus className="h-4 w-4" />
-                    <span>AGREGAR CONTACTO</span>
-                  </button>
+                  {/* Add Contact Form - Inline */}
+                  {showAddContact ? (
+                    <div className="p-3 border border-border rounded-lg bg-muted/30 space-y-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-muted-foreground">Nombre</Label>
+                        <Input
+                          value={newContactName}
+                          onChange={(e) => setNewContactName(e.target.value)}
+                          placeholder="Nombre del contacto"
+                          className="text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-muted-foreground">Cargo</Label>
+                        <Input
+                          value={newContactRole}
+                          onChange={(e) => setNewContactRole(e.target.value)}
+                          placeholder="Cargo del contacto"
+                          className="text-sm"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="flex-1 text-xs"
+                          onClick={() => {
+                            setShowAddContact(false)
+                            setNewContactName('')
+                            setNewContactRole('')
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="flex-1 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                          disabled={!newContactName.trim() || !newContactRole.trim()}
+                          onClick={() => {
+                            if (newContactName.trim() && newContactRole.trim()) {
+                              setFormData({
+                                ...formData,
+                                assignedContacts: [...formData.assignedContacts, { name: newContactName.trim(), role: newContactRole.trim() }]
+                              })
+                              setNewContactName('')
+                              setNewContactRole('')
+                              setShowAddContact(false)
+                            }
+                          }}
+                        >
+                          Agregar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full justify-center py-2 border border-dashed border-border rounded-lg"
+                      onClick={() => setShowAddContact(true)}
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      <span>AGREGAR CONTACTO</span>
+                    </button>
+                  )}
                 </div>
               </div>
               
@@ -626,6 +715,17 @@ export function Companies() {
             {selectedCompany && (() => {
               const lastQuotationDate = getLastQuotationDateForCompany(selectedCompany.id)
               const status = getActivityStatus(lastQuotationDate)
+              const allAddresses = selectedCompany.addresses && selectedCompany.addresses.length > 0 
+                ? selectedCompany.addresses 
+                : (selectedCompany.address ? [selectedCompany.address] : [])
+              const allEmails = selectedCompany.emails && selectedCompany.emails.length > 0 
+                ? selectedCompany.emails 
+                : (selectedCompany.email ? [selectedCompany.email] : [])
+              const allPhones = selectedCompany.phones && selectedCompany.phones.length > 0 
+                ? selectedCompany.phones 
+                : (selectedCompany.phone ? [selectedCompany.phone] : [])
+              const allContacts = selectedCompany.assignedContacts || []
+              
               return (
                 <div className="space-y-6">
                   {/* Company Name */}
@@ -649,39 +749,88 @@ export function Companies() {
                     </div>
                   </div>
                   
-                  {/* Address */}
+                  {/* All Addresses */}
                   <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Dirección Fiscal</p>
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-foreground">{selectedCompany.address || 'No especificado'}</p>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                      Dirección Fiscal {allAddresses.length > 1 && `(${allAddresses.length})`}
+                    </p>
+                    <div className="space-y-2">
+                      {allAddresses.length > 0 ? allAddresses.map((addr, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                          <p className="text-sm text-foreground">{addr}</p>
+                        </div>
+                      )) : (
+                        <p className="text-sm text-muted-foreground">No especificado</p>
+                      )}
                     </div>
                   </div>
                   
-                  {/* Email and Phone */}
+                  {/* All Emails and Phones */}
                   <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Correo Electrónico</p>
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <a href={`mailto:${selectedCompany.email}`} className="text-sm text-blue-600 hover:text-blue-700 underline">
-                          {selectedCompany.email || 'No especificado'}
-                        </a>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                        Correo Electrónico {allEmails.length > 1 && `(${allEmails.length})`}
+                      </p>
+                      <div className="space-y-2">
+                        {allEmails.length > 0 ? allEmails.map((email, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <a href={`mailto:${email}`} className="text-sm text-blue-600 hover:text-blue-700 underline">
+                              {email}
+                            </a>
+                          </div>
+                        )) : (
+                          <p className="text-sm text-muted-foreground">No especificado</p>
+                        )}
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Teléfono de Contacto</p>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <a href={`tel:${selectedCompany.phone}`} className="text-sm text-blue-600 hover:text-blue-700 underline">
-                          {selectedCompany.phone || 'No especificado'}
-                        </a>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                        Teléfono de Contacto {allPhones.length > 1 && `(${allPhones.length})`}
+                      </p>
+                      <div className="space-y-2">
+                        {allPhones.length > 0 ? allPhones.map((phone, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <a href={`tel:${phone}`} className="text-sm text-blue-600 hover:text-blue-700 underline">
+                              {phone}
+                            </a>
+                          </div>
+                        )) : (
+                          <p className="text-sm text-muted-foreground">No especificado</p>
+                        )}
                       </div>
                     </div>
                   </div>
                   
-                  {/* Contact Person Card */}
-                  {selectedCompany.contact && (
+                  {/* All Assigned Contacts */}
+                  {allContacts.length > 0 && (
+                    <div className="rounded-lg border border-border bg-muted/40 p-4">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                        Contactos Asignados ({allContacts.length})
+                      </p>
+                      <div className="space-y-3">
+                        {allContacts.map((contact, idx) => (
+                          <div key={idx} className="flex items-center gap-3">
+                            <div className={cn(
+                              "flex items-center justify-center w-10 h-10 rounded-full font-semibold text-sm",
+                              idx === 0 ? "bg-blue-100 text-blue-600" : "bg-muted text-muted-foreground"
+                            )}>
+                              {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">{contact.name}</p>
+                              <p className="text-xs text-muted-foreground uppercase">{contact.role}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Legacy Contact Person Card - only show if no assigned contacts but has contact field */}
+                  {allContacts.length === 0 && selectedCompany.contact && (
                     <div className="rounded-lg border border-border bg-muted/40 p-4">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Contacto Directo</p>
                       <div className="flex items-center gap-3">

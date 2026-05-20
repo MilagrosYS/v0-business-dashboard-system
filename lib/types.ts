@@ -9,6 +9,11 @@ export interface Company {
   lastActivity: Date
   createdAt: Date
   status: 'active' | 'inactive'
+  // Multiple data arrays
+  emails?: string[]
+  phones?: string[]
+  addresses?: string[]
+  assignedContacts?: { name: string; role: string }[]
 }
 
 export interface SparePart {
