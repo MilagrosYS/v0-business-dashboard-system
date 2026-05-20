@@ -260,25 +260,27 @@ export function Settings() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex gap-4">
-              <div className="relative">
-                {profileImage ? (
-                  <img 
-                    src={profileImage} 
-                    alt="Perfil" 
-                    className="h-20 w-20 rounded object-cover"
-                  />
-                ) : (
-                  <div className="flex h-20 w-20 items-center justify-center rounded bg-primary/10 text-xl font-bold text-primary">
-                    {name.charAt(0).toUpperCase()}
-                  </div>
-                )}
+            <div className="flex flex-col items-start gap-4">
+              <div className="flex flex-col items-start gap-2">
+                <div className="relative">
+                  {profileImage ? (
+                    <img 
+                      src={profileImage} 
+                      alt="Perfil" 
+                      className="h-24 w-24 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-24 w-24 items-center justify-center rounded bg-primary/10 text-2xl font-bold text-primary">
+                      {name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90 text-xs"
+                  className="text-xs font-semibold text-primary hover:underline"
                 >
-                  <Camera className="h-3 w-3" />
+                  Cambiar Foto
                 </button>
                 <input
                   ref={fileInputRef}
@@ -288,21 +290,28 @@ export function Settings() {
                   className="hidden"
                 />
               </div>
-              <div className="flex-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase">Nombre Completo</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase">Nombre Completo</label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Luis"
-                  className="mt-1 border-0 border-b border-border rounded-none px-0 py-2"
+                  className="border-0 border-b border-border rounded-none px-0 py-2"
                 />
-                
-                <p className="text-xs font-semibold text-muted-foreground uppercase mt-6">Nombre de Usuario</p>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-2">
+                  <span>●</span> Nombre de Usuario
+                </label>
                 <Input
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="admin"
-                  className="mt-1 border-0 border-b border-border rounded-none px-0 py-2"
+                  className="border-0 border-b border-border rounded-none px-0 py-2"
                 />
               </div>
             </div>
@@ -336,57 +345,62 @@ export function Settings() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase">Contraseña Actual</label>
-              <div className="relative">
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  className="pr-10"
-                  disabled
-                />
+              <Input
+                type="password"
+                placeholder="••••••••"
+                disabled
+                className="border-0 border-b border-border rounded-none px-0 py-2"
+              />
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase">Nueva Contraseña</label>
+                <div className="relative">
+                  <Input
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder=""
+                    className="border-0 border-b border-border rounded-none px-0 py-2 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase">Confirmar</label>
+                <div className="relative">
+                  <Input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder=""
+                    className="border-0 border-b border-border rounded-none px-0 py-2 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             </div>
             
-            <div className="space-y-3">
-              <label className="text-xs font-semibold text-muted-foreground uppercase">Nueva Contraseña</label>
-              <div className="relative">
-                <Input
-                  type={showNewPassword ? 'text' : 'password'}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Ingresa nueva contraseña"
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <label className="text-xs font-semibold text-muted-foreground uppercase">Confirmar</label>
-              <div className="relative">
-                <Input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirma nueva contraseña"
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground flex items-start gap-2">
+              <span className="text-primary flex-shrink-0">ⓘ</span>
+              <span>La contraseña debe tener al menos 8 caracteres.</span>
+            </p>
             
             {passwordError && (
               <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
@@ -399,11 +413,6 @@ export function Settings() {
                 Contraseña actualizada correctamente!
               </div>
             )}
-            
-            <p className="text-xs text-muted-foreground flex gap-1">
-              <span className="text-primary">ⓘ</span>
-              La contraseña debe tener al menos 8 caracteres.
-            </p>
             
             <Button 
               onClick={handleChangePassword} 
