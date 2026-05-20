@@ -25,6 +25,7 @@ import { Label } from '@/components/ui/label'
 import { useDashboardStore } from '@/lib/store'
 import { Company, getActivityStatus, ActivityStatus, statusLabels } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { getArrayOrFallback } from '@/lib/utils'
 
 type ModalMode = 'create' | 'edit' | 'view' | null
 
@@ -69,40 +70,38 @@ export function Companies() {
   const [showAddContact, setShowAddContact] = useState(false)
   const [editingContactIndex, setEditingContactIndex] = useState<number | null>(null)
   
-  // Helper to compare arrays - filter out empty strings before comparison
-  const arraysEqual = (a: string[], b: string[]) => {
-    const filteredA = a.filter(v => v.trim() !== '')
-    const filteredB = b.filter(v => v.trim() !== '')
-    if (filteredA.length !== filteredB.length) return false
-    return filteredA.every((val, idx) => val === filteredB[idx])
+  // Helper functions for array comparison
+  const arraysEqual = (a: string[], b: string[]): boolean => {
+    const filtered = (arr: string[]) => arr.filter(v => v.trim() !== '')
+    const filteredA = filtered(a)
+    const filteredB = filtered(b)
+    return filteredA.length === filteredB.length && 
+           filteredA.every((val, idx) => val === filteredB[idx])
   }
   
-  const contactsEqual = (a: { name: string; role: string }[], b: { name: string; role: string }[]) => {
-    // Filter out contacts with empty names
-    const filteredA = a.filter(c => c.name.trim() !== '')
-    const filteredB = b.filter(c => c.name.trim() !== '')
-    if (filteredA.length !== filteredB.length) return false
-    return filteredA.every((val, idx) => val.name === filteredB[idx].name && val.role === filteredB[idx].role)
+  const contactsEqual = (a: { name: string; role: string }[], b: { name: string; role: string }[]): boolean => {
+    const filtered = (arr: typeof a) => arr.filter(c => c.name.trim() !== '')
+    const filteredA = filtered(a)
+    const filteredB = filtered(b)
+    return filteredA.length === filteredB.length &&
+           filteredA.every((val, idx) => val.name === filteredB[idx].name && val.role === filteredB[idx].role)
   }
   
-  // Check if form has required data and has changed (for edit mode)
+  // Validation
   const isFormValid = formData.name.trim() !== '' && formData.ruc.trim() !== ''
   
-  // For edit mode, compare against initialFormData to detect real changes
-  const hasChanges = modalMode === 'create' ? (
-    // For create mode, check if any required field has content
+  // Change detection
+  const hasChanges = initialFormData === null ? (
     formData.name.trim() !== '' || formData.ruc.trim() !== ''
   ) : (
-    // For edit mode, compare against initial state
-    initialFormData && (
-      formData.name !== initialFormData.name ||
-      formData.ruc !== initialFormData.ruc ||
-      !arraysEqual(formData.emails, initialFormData.emails) ||
-      !arraysEqual(formData.phones, initialFormData.phones) ||
-      !arraysEqual(formData.addresses, initialFormData.addresses) ||
-      !contactsEqual(formData.assignedContacts, initialFormData.assignedContacts)
-    )
+    formData.name !== initialFormData.name ||
+    formData.ruc !== initialFormData.ruc ||
+    !arraysEqual(formData.emails, initialFormData.emails) ||
+    !arraysEqual(formData.phones, initialFormData.phones) ||
+    !arraysEqual(formData.addresses, initialFormData.addresses) ||
+    !contactsEqual(formData.assignedContacts, initialFormData.assignedContacts)
   )
+  
   const canSubmit = isFormValid && hasChanges
   
   const filteredCompanies = useMemo(() => {
@@ -156,17 +155,9 @@ export function Companies() {
     if (e) e.stopPropagation()
     setSelectedCompany(company)
     
-    // Properly load all existing data including arrays
-    // Use the array fields if they exist, otherwise fallback to single field values
-    const existingEmails = company.emails && company.emails.length > 0 
-      ? [...company.emails]
-      : (company.email ? [company.email] : [])
-    const existingPhones = company.phones && company.phones.length > 0 
-      ? [...company.phones]
-      : (company.phone ? [company.phone] : [])
-    const existingAddresses = company.addresses && company.addresses.length > 0 
-      ? [...company.addresses]
-      : (company.address ? [company.address] : [])
+    const existingEmails = getArrayOrFallback(company.emails || [], company.email)
+    const existingPhones = getArrayOrFallback(company.phones || [], company.phone)
+    const existingAddresses = getArrayOrFallback(company.addresses || [], company.address)
     const existingContacts = company.assignedContacts && company.assignedContacts.length > 0
       ? company.assignedContacts.map(c => ({ ...c }))
       : []
@@ -185,7 +176,6 @@ export function Companies() {
     }
     
     setFormData(loadedFormData)
-    // Store a deep copy of the initial state for comparison
     setInitialFormData({
       ...loadedFormData,
       emails: [...existingEmails],
@@ -198,7 +188,6 @@ export function Companies() {
     setShowAddContact(false)
     setEditingContactIndex(null)
     setModalMode('edit')
-    // Reset the switch flag after a brief delay to allow the Dialog state to settle
     setTimeout(() => {
       isSwitchingToEdit.current = false
     }, 50)
@@ -449,16 +438,17 @@ export function Companies() {
                     <Label htmlFor="address" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Direccion Fiscal
                     </Label>
-                    {(formData.addresses.length > 0 ? formData.addresses : (formData.address ? [formData.address] : [''])).map((addr, index) => (
+                    {getArrayOrFallback(formData.addresses, formData.address).map((addr, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <div className="flex-1 flex items-center gap-2 px-3 py-2 border border-input rounded-md bg-background">
                           <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           <input
                             value={addr}
                             onChange={(e) => {
-                              const newAddresses = formData.addresses.length > 0 ? [...formData.addresses] : (formData.address ? [formData.address] : [''])
-                              newAddresses[index] = e.target.value
-                              setFormData({ ...formData, addresses: newAddresses, address: newAddresses[0] || '' })
+                              const current = getArrayOrFallback(formData.addresses, formData.address)
+                              const updated = [...current]
+                              updated[index] = e.target.value
+                              setFormData({ ...formData, addresses: updated, address: updated[0] || '' })
                             }}
                             placeholder="Carr. Variante de Uchumayo k"
                             className="flex-1 text-sm bg-transparent border-0 p-0 h-auto focus:outline-none focus:ring-0"
@@ -468,9 +458,9 @@ export function Companies() {
                           type="button"
                           className="p-2 text-muted-foreground hover:text-destructive transition-colors"
                           onClick={() => {
-                            const currentAddresses = formData.addresses.length > 0 ? formData.addresses : (formData.address ? [formData.address] : [])
-                            const newAddresses = currentAddresses.filter((_, i) => i !== index)
-                            setFormData({ ...formData, addresses: newAddresses, address: newAddresses[0] || '' })
+                            const current = getArrayOrFallback(formData.addresses, formData.address)
+                            const updated = current.filter((_, i) => i !== index)
+                            setFormData({ ...formData, addresses: updated, address: updated[0] || '' })
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -483,8 +473,8 @@ export function Companies() {
                     type="button"
                     className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
                     onClick={() => {
-                      const currentAddresses = formData.addresses.length > 0 ? formData.addresses : (formData.address ? [formData.address] : [])
-                      setFormData({ ...formData, addresses: [...currentAddresses, ''] })
+                      const current = getArrayOrFallback(formData.addresses, formData.address)
+                      setFormData({ ...formData, addresses: [...current, ''] })
                     }}
                   >
                     <Plus className="h-4 w-4" />
@@ -506,15 +496,16 @@ export function Companies() {
                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Correo Electronico
                     </Label>
-                    {(formData.emails.length > 0 ? formData.emails : (formData.email ? [formData.email] : [''])).map((email, index) => (
+                    {getArrayOrFallback(formData.emails, formData.email).map((email, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <Input
                           type="email"
                           value={email}
                           onChange={(e) => {
-                            const newEmails = formData.emails.length > 0 ? [...formData.emails] : (formData.email ? [formData.email] : [''])
-                            newEmails[index] = e.target.value
-                            setFormData({ ...formData, emails: newEmails, email: newEmails[0] || '' })
+                            const current = getArrayOrFallback(formData.emails, formData.email)
+                            const updated = [...current]
+                            updated[index] = e.target.value
+                            setFormData({ ...formData, emails: updated, email: updated[0] || '' })
                           }}
                           placeholder="compras@cerroverde.pe"
                           className="text-sm flex-1"
@@ -523,9 +514,9 @@ export function Companies() {
                           type="button"
                           className="p-2 text-muted-foreground hover:text-destructive transition-colors"
                           onClick={() => {
-                            const currentEmails = formData.emails.length > 0 ? formData.emails : (formData.email ? [formData.email] : [])
-                            const newEmails = currentEmails.filter((_, i) => i !== index)
-                            setFormData({ ...formData, emails: newEmails, email: newEmails[0] || '' })
+                            const current = getArrayOrFallback(formData.emails, formData.email)
+                            const updated = current.filter((_, i) => i !== index)
+                            setFormData({ ...formData, emails: updated, email: updated[0] || '' })
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -538,8 +529,8 @@ export function Companies() {
                     type="button"
                     className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
                     onClick={() => {
-                      const currentEmails = formData.emails.length > 0 ? formData.emails : (formData.email ? [formData.email] : [])
-                      setFormData({ ...formData, emails: [...currentEmails, ''] })
+                      const current = getArrayOrFallback(formData.emails, formData.email)
+                      setFormData({ ...formData, emails: [...current, ''] })
                     }}
                   >
                     <Plus className="h-4 w-4" />
@@ -551,14 +542,15 @@ export function Companies() {
                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Telefono de Contacto
                     </Label>
-                    {(formData.phones.length > 0 ? formData.phones : (formData.phone ? [formData.phone] : [''])).map((phone, index) => (
+                    {getArrayOrFallback(formData.phones, formData.phone).map((phone, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <Input
                           value={phone}
                           onChange={(e) => {
-                            const newPhones = formData.phones.length > 0 ? [...formData.phones] : (formData.phone ? [formData.phone] : [''])
-                            newPhones[index] = e.target.value
-                            setFormData({ ...formData, phones: newPhones, phone: newPhones[0] || '' })
+                            const current = getArrayOrFallback(formData.phones, formData.phone)
+                            const updated = [...current]
+                            updated[index] = e.target.value
+                            setFormData({ ...formData, phones: updated, phone: updated[0] || '' })
                           }}
                           placeholder="+51 954 782 145"
                           className="text-sm flex-1"
@@ -567,9 +559,9 @@ export function Companies() {
                           type="button"
                           className="p-2 text-muted-foreground hover:text-destructive transition-colors"
                           onClick={() => {
-                            const currentPhones = formData.phones.length > 0 ? formData.phones : (formData.phone ? [formData.phone] : [])
-                            const newPhones = currentPhones.filter((_, i) => i !== index)
-                            setFormData({ ...formData, phones: newPhones, phone: newPhones[0] || '' })
+                            const current = getArrayOrFallback(formData.phones, formData.phone)
+                            const updated = current.filter((_, i) => i !== index)
+                            setFormData({ ...formData, phones: updated, phone: updated[0] || '' })
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -582,8 +574,8 @@ export function Companies() {
                     type="button"
                     className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
                     onClick={() => {
-                      const currentPhones = formData.phones.length > 0 ? formData.phones : (formData.phone ? [formData.phone] : [])
-                      setFormData({ ...formData, phones: [...currentPhones, ''] })
+                      const current = getArrayOrFallback(formData.phones, formData.phone)
+                      setFormData({ ...formData, phones: [...current, ''] })
                     }}
                   >
                     <Plus className="h-4 w-4" />
@@ -830,15 +822,9 @@ export function Companies() {
             {selectedCompany && (() => {
               const lastQuotationDate = getLastQuotationDateForCompany(selectedCompany.id)
               const status = getActivityStatus(lastQuotationDate)
-              const allAddresses = selectedCompany.addresses && selectedCompany.addresses.length > 0 
-                ? selectedCompany.addresses 
-                : (selectedCompany.address ? [selectedCompany.address] : [])
-              const allEmails = selectedCompany.emails && selectedCompany.emails.length > 0 
-                ? selectedCompany.emails 
-                : (selectedCompany.email ? [selectedCompany.email] : [])
-              const allPhones = selectedCompany.phones && selectedCompany.phones.length > 0 
-                ? selectedCompany.phones 
-                : (selectedCompany.phone ? [selectedCompany.phone] : [])
+              const allAddresses = getArrayOrFallback(selectedCompany.addresses || [], selectedCompany.address)
+              const allEmails = getArrayOrFallback(selectedCompany.emails || [], selectedCompany.email)
+              const allPhones = getArrayOrFallback(selectedCompany.phones || [], selectedCompany.phone)
               const allContacts = selectedCompany.assignedContacts || []
               
               return (

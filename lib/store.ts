@@ -1,9 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { Company, SparePart, StockMovement, InventoryItem, Quotation, QuotationItem, SystemSettings, UserProfile } from './types'
-
-// Generate unique IDs
-const generateId = () => Math.random().toString(36).substring(2, 15)
+import { generateId } from './utils'
 
 // Sample data with realistic codes and part numbers
 const sampleCompanies: Company[] = [
