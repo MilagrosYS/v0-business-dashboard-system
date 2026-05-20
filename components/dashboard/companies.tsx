@@ -57,36 +57,46 @@ export function Companies() {
     assignedContacts: [] as { name: string; role: string }[],
   })
   
+  // Store the initial state when opening edit mode for accurate comparison
+  const [initialFormData, setInitialFormData] = useState<typeof formData | null>(null)
+  
   // State for adding new contact inline
   const [newContactName, setNewContactName] = useState('')
   const [newContactRole, setNewContactRole] = useState('')
   const [showAddContact, setShowAddContact] = useState(false)
   
-  // Helper to compare arrays
+  // Helper to compare arrays - filter out empty strings before comparison
   const arraysEqual = (a: string[], b: string[]) => {
-    if (a.length !== b.length) return false
-    return a.every((val, idx) => val === b[idx])
+    const filteredA = a.filter(v => v.trim() !== '')
+    const filteredB = b.filter(v => v.trim() !== '')
+    if (filteredA.length !== filteredB.length) return false
+    return filteredA.every((val, idx) => val === filteredB[idx])
   }
   
   const contactsEqual = (a: { name: string; role: string }[], b: { name: string; role: string }[]) => {
-    if (a.length !== b.length) return false
-    return a.every((val, idx) => val.name === b[idx].name && val.role === b[idx].role)
+    // Filter out contacts with empty names
+    const filteredA = a.filter(c => c.name.trim() !== '')
+    const filteredB = b.filter(c => c.name.trim() !== '')
+    if (filteredA.length !== filteredB.length) return false
+    return filteredA.every((val, idx) => val.name === filteredB[idx].name && val.role === filteredB[idx].role)
   }
   
   // Check if form has required data and has changed (for edit mode)
   const isFormValid = formData.name.trim() !== '' && formData.ruc.trim() !== ''
-  const hasChanges = modalMode === 'create' ? true : (
-    selectedCompany && (
-      formData.name !== selectedCompany.name ||
-      formData.ruc !== selectedCompany.ruc ||
-      formData.address !== selectedCompany.address ||
-      formData.contact !== selectedCompany.contact ||
-      formData.phone !== selectedCompany.phone ||
-      formData.email !== selectedCompany.email ||
-      !arraysEqual(formData.emails, selectedCompany.emails || []) ||
-      !arraysEqual(formData.phones, selectedCompany.phones || []) ||
-      !arraysEqual(formData.addresses, selectedCompany.addresses || []) ||
-      !contactsEqual(formData.assignedContacts, selectedCompany.assignedContacts || [])
+  
+  // For edit mode, compare against initialFormData to detect real changes
+  const hasChanges = modalMode === 'create' ? (
+    // For create mode, check if any required field has content
+    formData.name.trim() !== '' || formData.ruc.trim() !== ''
+  ) : (
+    // For edit mode, compare against initial state
+    initialFormData && (
+      formData.name !== initialFormData.name ||
+      formData.ruc !== initialFormData.ruc ||
+      !arraysEqual(formData.emails, initialFormData.emails) ||
+      !arraysEqual(formData.phones, initialFormData.phones) ||
+      !arraysEqual(formData.addresses, initialFormData.addresses) ||
+      !contactsEqual(formData.assignedContacts, initialFormData.assignedContacts)
     )
   )
   const canSubmit = isFormValid && hasChanges
@@ -117,7 +127,7 @@ export function Companies() {
   }, [companies, search, statusFilter, getLastQuotationDateForCompany])
   
   const openCreate = () => {
-    setFormData({ 
+    const emptyForm = { 
       name: '', 
       ruc: '', 
       address: '', 
@@ -128,7 +138,9 @@ export function Companies() {
       phones: [],
       addresses: [],
       assignedContacts: [],
-    })
+    }
+    setFormData(emptyForm)
+    setInitialFormData(null) // No initial state for create mode
     setNewContactName('')
     setNewContactRole('')
     setShowAddContact(false)
@@ -138,18 +150,23 @@ export function Companies() {
   const openEdit = (company: Company, e: React.MouseEvent) => {
     e.stopPropagation()
     setSelectedCompany(company)
+    
     // Properly load all existing data including arrays
+    // Use the array fields if they exist, otherwise fallback to single field values
     const existingEmails = company.emails && company.emails.length > 0 
-      ? company.emails 
+      ? [...company.emails]
       : (company.email ? [company.email] : [])
     const existingPhones = company.phones && company.phones.length > 0 
-      ? company.phones 
+      ? [...company.phones]
       : (company.phone ? [company.phone] : [])
     const existingAddresses = company.addresses && company.addresses.length > 0 
-      ? company.addresses 
+      ? [...company.addresses]
       : (company.address ? [company.address] : [])
+    const existingContacts = company.assignedContacts && company.assignedContacts.length > 0
+      ? company.assignedContacts.map(c => ({ ...c }))
+      : []
     
-    setFormData({
+    const loadedFormData = {
       name: company.name,
       ruc: company.ruc,
       address: company.address,
@@ -159,7 +176,17 @@ export function Companies() {
       emails: existingEmails,
       phones: existingPhones,
       addresses: existingAddresses,
-      assignedContacts: company.assignedContacts || [],
+      assignedContacts: existingContacts,
+    }
+    
+    setFormData(loadedFormData)
+    // Store a deep copy of the initial state for comparison
+    setInitialFormData({
+      ...loadedFormData,
+      emails: [...existingEmails],
+      phones: [...existingPhones],
+      addresses: [...existingAddresses],
+      assignedContacts: existingContacts.map(c => ({ ...c })),
     })
     setNewContactName('')
     setNewContactRole('')
