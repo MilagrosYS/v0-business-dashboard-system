@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Plus, Search, Pencil, Trash2, X, Building2, MapPin, Mail, Phone } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, X, Building2, MapPin, Mail, Phone, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { useDashboardStore } from '@/lib/store'
-import { Company, getActivityStatus, ActivityStatus } from '@/lib/types'
+import { Company, getActivityStatus, ActivityStatus, statusLabels } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 type ModalMode = 'create' | 'edit' | 'view' | null
@@ -34,16 +34,10 @@ const statusColors: Record<ActivityStatus, string> = {
   inactive: 'bg-status-inactive',
 }
 
-const statusLabels: Record<ActivityStatus, string> = {
-  active: 'Activo',
-  warning: 'Moderado',
-  inactive: 'Inactivo',
-}
-
 export function Companies() {
-  const { companies, addCompany, updateCompany, deleteCompany } = useDashboardStore()
+  const { companies, addCompany, updateCompany, deleteCompany, getLastQuotationDateForCompany } = useDashboardStore()
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | ActivityStatus>('all')
   const [modalMode, setModalMode] = useState<ModalMode>(null)
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<Company | null>(null)
@@ -57,23 +51,52 @@ export function Companies() {
     contact: '',
     phone: '',
     email: '',
-    status: 'active' as 'active' | 'inactive',
     emails: [] as string[],
     phones: [] as string[],
+    addresses: [] as string[],
     assignedContacts: [] as { name: string; role: string }[],
   })
   
+  // Store the initial state when opening edit mode for accurate comparison
+  const [initialFormData, setInitialFormData] = useState<typeof formData | null>(null)
+  
+  // State for adding new contact inline
+  const [newContactName, setNewContactName] = useState('')
+  const [newContactRole, setNewContactRole] = useState('')
+  const [showAddContact, setShowAddContact] = useState(false)
+  
+  // Helper to compare arrays - filter out empty strings before comparison
+  const arraysEqual = (a: string[], b: string[]) => {
+    const filteredA = a.filter(v => v.trim() !== '')
+    const filteredB = b.filter(v => v.trim() !== '')
+    if (filteredA.length !== filteredB.length) return false
+    return filteredA.every((val, idx) => val === filteredB[idx])
+  }
+  
+  const contactsEqual = (a: { name: string; role: string }[], b: { name: string; role: string }[]) => {
+    // Filter out contacts with empty names
+    const filteredA = a.filter(c => c.name.trim() !== '')
+    const filteredB = b.filter(c => c.name.trim() !== '')
+    if (filteredA.length !== filteredB.length) return false
+    return filteredA.every((val, idx) => val.name === filteredB[idx].name && val.role === filteredB[idx].role)
+  }
+  
   // Check if form has required data and has changed (for edit mode)
   const isFormValid = formData.name.trim() !== '' && formData.ruc.trim() !== ''
-  const hasChanges = modalMode === 'create' ? true : (
-    selectedCompany && (
-      formData.name !== selectedCompany.name ||
-      formData.ruc !== selectedCompany.ruc ||
-      formData.address !== selectedCompany.address ||
-      formData.contact !== selectedCompany.contact ||
-      formData.phone !== selectedCompany.phone ||
-      formData.email !== selectedCompany.email ||
-      formData.status !== selectedCompany.status
+  
+  // For edit mode, compare against initialFormData to detect real changes
+  const hasChanges = modalMode === 'create' ? (
+    // For create mode, check if any required field has content
+    formData.name.trim() !== '' || formData.ruc.trim() !== ''
+  ) : (
+    // For edit mode, compare against initial state
+    initialFormData && (
+      formData.name !== initialFormData.name ||
+      formData.ruc !== initialFormData.ruc ||
+      !arraysEqual(formData.emails, initialFormData.emails) ||
+      !arraysEqual(formData.phones, initialFormData.phones) ||
+      !arraysEqual(formData.addresses, initialFormData.addresses) ||
+      !contactsEqual(formData.assignedContacts, initialFormData.assignedContacts)
     )
   )
   const canSubmit = isFormValid && hasChanges
@@ -91,45 +114,83 @@ export function Companies() {
       )
     }
     
-    // Filter by status
+    // Filter by automatic status based on quotation dates
     if (statusFilter !== 'all') {
-      result = result.filter((c) => c.status === statusFilter)
+      result = result.filter((c) => {
+        const lastQuotationDate = getLastQuotationDateForCompany(c.id)
+        const companyStatus = getActivityStatus(lastQuotationDate)
+        return companyStatus === statusFilter
+      })
     }
     
     return result
-  }, [companies, search, statusFilter])
+  }, [companies, search, statusFilter, getLastQuotationDateForCompany])
   
   const openCreate = () => {
-    setFormData({ 
+    const emptyForm = { 
       name: '', 
       ruc: '', 
       address: '', 
       contact: '', 
       phone: '', 
       email: '', 
-      status: 'active',
       emails: [],
       phones: [],
+      addresses: [],
       assignedContacts: [],
-    })
+    }
+    setFormData(emptyForm)
+    setInitialFormData(null) // No initial state for create mode
+    setNewContactName('')
+    setNewContactRole('')
+    setShowAddContact(false)
     setModalMode('create')
   }
   
   const openEdit = (company: Company, e: React.MouseEvent) => {
     e.stopPropagation()
     setSelectedCompany(company)
-    setFormData({
+    
+    // Properly load all existing data including arrays
+    // Use the array fields if they exist, otherwise fallback to single field values
+    const existingEmails = company.emails && company.emails.length > 0 
+      ? [...company.emails]
+      : (company.email ? [company.email] : [])
+    const existingPhones = company.phones && company.phones.length > 0 
+      ? [...company.phones]
+      : (company.phone ? [company.phone] : [])
+    const existingAddresses = company.addresses && company.addresses.length > 0 
+      ? [...company.addresses]
+      : (company.address ? [company.address] : [])
+    const existingContacts = company.assignedContacts && company.assignedContacts.length > 0
+      ? company.assignedContacts.map(c => ({ ...c }))
+      : []
+    
+    const loadedFormData = {
       name: company.name,
       ruc: company.ruc,
       address: company.address,
       contact: company.contact,
       phone: company.phone,
       email: company.email,
-      status: company.status,
-      emails: company.emails || [company.email],
-      phones: company.phones || [company.phone],
-      assignedContacts: company.assignedContacts || [],
+      emails: existingEmails,
+      phones: existingPhones,
+      addresses: existingAddresses,
+      assignedContacts: existingContacts,
+    }
+    
+    setFormData(loadedFormData)
+    // Store a deep copy of the initial state for comparison
+    setInitialFormData({
+      ...loadedFormData,
+      emails: [...existingEmails],
+      phones: [...existingPhones],
+      addresses: [...existingAddresses],
+      assignedContacts: existingContacts.map(c => ({ ...c })),
     })
+    setNewContactName('')
+    setNewContactRole('')
+    setShowAddContact(false)
     setModalMode('edit')
   }
   
@@ -141,6 +202,9 @@ export function Companies() {
   const closeModal = () => {
     setModalMode(null)
     setSelectedCompany(null)
+    setNewContactName('')
+    setNewContactRole('')
+    setShowAddContact(false)
   }
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -207,12 +271,13 @@ export function Companies() {
                 <select
                   id="status-filter"
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                  onChange={(e) => setStatusFilter(e.target.value as 'all' | ActivityStatus)}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="all">Todos</option>
-                  <option value="active">Activo</option>
-                  <option value="inactive">Inactivo</option>
+                  <option value="active">Activo (cotizacion en ultimos 3 meses)</option>
+                  <option value="warning">Inactivo reciente (3-5 meses sin cotizacion)</option>
+                  <option value="inactive">Sin actividad (mas de 5 meses)</option>
                 </select>
               </div>
             </div>
@@ -247,7 +312,8 @@ export function Companies() {
                 </TableRow>
               ) : (
                 filteredCompanies.map((company) => {
-                  const status = getActivityStatus(company.lastActivity)
+                  const lastQuotationDate = getLastQuotationDateForCompany(company.id)
+                  const status = getActivityStatus(lastQuotationDate)
                   const isHovered = hoveredRow === company.id
                   return (
                     <TableRow 
@@ -299,7 +365,7 @@ export function Companies() {
       
       {/* Create/Edit Modal */}
       <Dialog open={modalMode === 'create' || modalMode === 'edit'} onOpenChange={closeModal}>
-        <DialogContent className="sm:max-w-2xl border-0 shadow-lg p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-4xl border-0 shadow-lg p-0 overflow-hidden">
           {/* Blue top border accent */}
           <div className="h-1 bg-gradient-to-r from-blue-600 to-blue-400" />
           
@@ -324,129 +390,323 @@ export function Companies() {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Row 1: Nombre and RUC */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Nombre de Empresa *
-                  </Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Ingresa nombre de empresa"
-                    required
-                    className="text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ruc" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    RUC *
-                  </Label>
-                  <Input
-                    id="ruc"
-                    value={formData.ruc}
-                    onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
-                    placeholder="Ingresa RUC"
-                    required
-                    className="text-sm"
-                  />
-                </div>
-              </div>
-              
-              {/* Row 2: Address */}
-              <div className="space-y-2">
-                <Label htmlFor="address" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Dirección Fiscal
-                </Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="Ingresa dirección"
-                  className="text-sm"
-                />
-              </div>
-              
-              {/* Row 3: Email and Phone */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Correo Electrónico
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="Ingresa email"
-                    className="text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Teléfono de Contacto
-                  </Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="Ingresa teléfono"
-                    className="text-sm"
-                  />
-                </div>
-              </div>
-              
-              {/* Row 4: Contact and Status */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="contact" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Contacto Directo
-                  </Label>
-                  <Input
-                    id="contact"
-                    value={formData.contact}
-                    onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                    placeholder="Ingresa nombre de contacto"
-                    className="text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="status" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Estado
-                  </Label>
-                  <select
-                    id="status"
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            <form onSubmit={handleSubmit}>
+              {/* Three Column Layout */}
+              <div className="grid grid-cols-3 gap-6">
+                {/* Column 1: INFORMACION BASICA */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-4 bg-blue-600 rounded-full" />
+                    <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+                      Informacion Basica
+                    </h3>
+                  </div>
+                  
+                  {/* Razon Social */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="name" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Razon Social
+                    </Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Minera Cerro Verde S.A.A."
+                      required
+                      className="text-sm"
+                    />
+                  </div>
+                  
+                  {/* RUC */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="ruc" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      RUC
+                    </Label>
+                    <Input
+                      id="ruc"
+                      value={formData.ruc}
+                      onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
+                      placeholder="20170072465"
+                      required
+                      className="text-sm"
+                    />
+                  </div>
+                  
+                  {/* Direccion Fiscal */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="address" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Direccion Fiscal
+                    </Label>
+                    {(formData.addresses.length > 0 ? formData.addresses : (formData.address ? [formData.address] : [''])).map((addr, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div className="flex-1 flex items-center gap-2 px-3 py-2 border border-input rounded-md bg-background">
+                          <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <input
+                            value={addr}
+                            onChange={(e) => {
+                              const newAddresses = formData.addresses.length > 0 ? [...formData.addresses] : (formData.address ? [formData.address] : [''])
+                              newAddresses[index] = e.target.value
+                              setFormData({ ...formData, addresses: newAddresses, address: newAddresses[0] || '' })
+                            }}
+                            placeholder="Carr. Variante de Uchumayo k"
+                            className="flex-1 text-sm bg-transparent border-0 p-0 h-auto focus:outline-none focus:ring-0"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                          onClick={() => {
+                            const currentAddresses = formData.addresses.length > 0 ? formData.addresses : (formData.address ? [formData.address] : [])
+                            const newAddresses = currentAddresses.filter((_, i) => i !== index)
+                            setFormData({ ...formData, addresses: newAddresses, address: newAddresses[0] || '' })
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                    onClick={() => {
+                      const currentAddresses = formData.addresses.length > 0 ? formData.addresses : (formData.address ? [formData.address] : [])
+                      setFormData({ ...formData, addresses: [...currentAddresses, ''] })
+                    }}
                   >
-                    <option value="active">Activo</option>
-                    <option value="inactive">Inactivo</option>
-                  </select>
+                    <Plus className="h-4 w-4" />
+                    <span>+ AGREGAR</span>
+                  </button>
+                </div>
+                
+                {/* Column 2: CANALES DE CONTACTO */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-4 bg-blue-600 rounded-full" />
+                    <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+                      Canales de Contacto
+                    </h3>
+                  </div>
+                  
+                  {/* Correo Electronico */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Correo Electronico
+                    </Label>
+                    {(formData.emails.length > 0 ? formData.emails : (formData.email ? [formData.email] : [''])).map((email, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          type="email"
+                          value={email}
+                          onChange={(e) => {
+                            const newEmails = formData.emails.length > 0 ? [...formData.emails] : (formData.email ? [formData.email] : [''])
+                            newEmails[index] = e.target.value
+                            setFormData({ ...formData, emails: newEmails, email: newEmails[0] || '' })
+                          }}
+                          placeholder="compras@cerroverde.pe"
+                          className="text-sm flex-1"
+                        />
+                        <button
+                          type="button"
+                          className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                          onClick={() => {
+                            const currentEmails = formData.emails.length > 0 ? formData.emails : (formData.email ? [formData.email] : [])
+                            const newEmails = currentEmails.filter((_, i) => i !== index)
+                            setFormData({ ...formData, emails: newEmails, email: newEmails[0] || '' })
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                    onClick={() => {
+                      const currentEmails = formData.emails.length > 0 ? formData.emails : (formData.email ? [formData.email] : [])
+                      setFormData({ ...formData, emails: [...currentEmails, ''] })
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>+ AGREGAR</span>
+                  </button>
+                  
+                  {/* Telefono de Contacto */}
+                  <div className="space-y-1.5 pt-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Telefono de Contacto
+                    </Label>
+                    {(formData.phones.length > 0 ? formData.phones : (formData.phone ? [formData.phone] : [''])).map((phone, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={phone}
+                          onChange={(e) => {
+                            const newPhones = formData.phones.length > 0 ? [...formData.phones] : (formData.phone ? [formData.phone] : [''])
+                            newPhones[index] = e.target.value
+                            setFormData({ ...formData, phones: newPhones, phone: newPhones[0] || '' })
+                          }}
+                          placeholder="+51 954 782 145"
+                          className="text-sm flex-1"
+                        />
+                        <button
+                          type="button"
+                          className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                          onClick={() => {
+                            const currentPhones = formData.phones.length > 0 ? formData.phones : (formData.phone ? [formData.phone] : [])
+                            const newPhones = currentPhones.filter((_, i) => i !== index)
+                            setFormData({ ...formData, phones: newPhones, phone: newPhones[0] || '' })
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                    onClick={() => {
+                      const currentPhones = formData.phones.length > 0 ? formData.phones : (formData.phone ? [formData.phone] : [])
+                      setFormData({ ...formData, phones: [...currentPhones, ''] })
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>+ AGREGAR</span>
+                  </button>
+                </div>
+                
+                {/* Column 3: CONTACTOS ASIGNADOS */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-4 bg-blue-600 rounded-full" />
+                    <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+                      Contactos Asignados
+                    </h3>
+                  </div>
+                  
+                  {/* Contact cards */}
+                  <div className="space-y-2">
+                    {formData.assignedContacts.map((contact, index) => (
+                      <div 
+                        key={index}
+                        className="flex items-center gap-3 p-3 border border-border rounded-lg bg-background"
+                      >
+                        <div className={cn(
+                          "flex items-center justify-center w-9 h-9 rounded-lg text-xs font-semibold flex-shrink-0",
+                          index === 0 ? "bg-blue-100 text-blue-600" : "bg-muted text-muted-foreground"
+                        )}>
+                          {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{contact.name}</p>
+                          <p className="text-xs text-muted-foreground uppercase">{contact.role}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newContacts = formData.assignedContacts.filter((_, i) => i !== index)
+                            setFormData({ ...formData, assignedContacts: newContacts })
+                          }}
+                          className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Add Contact Form - Inline */}
+                  {showAddContact ? (
+                    <div className="p-3 border border-border rounded-lg bg-muted/30 space-y-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-muted-foreground">Nombre</Label>
+                        <Input
+                          value={newContactName}
+                          onChange={(e) => setNewContactName(e.target.value)}
+                          placeholder="Nombre del contacto"
+                          className="text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-muted-foreground">Cargo</Label>
+                        <Input
+                          value={newContactRole}
+                          onChange={(e) => setNewContactRole(e.target.value)}
+                          placeholder="Cargo del contacto"
+                          className="text-sm"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="flex-1 text-xs"
+                          onClick={() => {
+                            setShowAddContact(false)
+                            setNewContactName('')
+                            setNewContactRole('')
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="flex-1 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                          disabled={!newContactName.trim() || !newContactRole.trim()}
+                          onClick={() => {
+                            if (newContactName.trim() && newContactRole.trim()) {
+                              setFormData({
+                                ...formData,
+                                assignedContacts: [...formData.assignedContacts, { name: newContactName.trim(), role: newContactRole.trim() }]
+                              })
+                              setNewContactName('')
+                              setNewContactRole('')
+                              setShowAddContact(false)
+                            }
+                          }}
+                        >
+                          Agregar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full justify-center py-2 border border-dashed border-border rounded-lg"
+                      onClick={() => setShowAddContact(true)}
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      <span>AGREGAR CONTACTO</span>
+                    </button>
+                  )}
                 </div>
               </div>
               
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t border-border">
+              <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-border">
                 <Button 
                   type="button" 
-                  variant="outline" 
-                  className="flex-1 text-sm"
+                  variant="ghost" 
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground"
                   onClick={closeModal}
                 >
-                  Cancelar
+                  CANCELAR
                 </Button>
                 <Button 
                   type="submit" 
                   disabled={!canSubmit}
                   className={cn(
-                    "flex-1 bg-foreground text-background hover:bg-foreground/90 text-sm",
+                    "bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium px-6",
                     !canSubmit && 'opacity-50 cursor-not-allowed'
                   )}
                 >
-                  {modalMode === 'create' ? 'Crear Empresa' : 'Guardar Cambios'}
+                  GUARDAR CAMBIOS
                 </Button>
               </div>
             </form>
@@ -480,7 +740,19 @@ export function Companies() {
             </div>
             
             {selectedCompany && (() => {
-              const status = getActivityStatus(selectedCompany.lastActivity)
+              const lastQuotationDate = getLastQuotationDateForCompany(selectedCompany.id)
+              const status = getActivityStatus(lastQuotationDate)
+              const allAddresses = selectedCompany.addresses && selectedCompany.addresses.length > 0 
+                ? selectedCompany.addresses 
+                : (selectedCompany.address ? [selectedCompany.address] : [])
+              const allEmails = selectedCompany.emails && selectedCompany.emails.length > 0 
+                ? selectedCompany.emails 
+                : (selectedCompany.email ? [selectedCompany.email] : [])
+              const allPhones = selectedCompany.phones && selectedCompany.phones.length > 0 
+                ? selectedCompany.phones 
+                : (selectedCompany.phone ? [selectedCompany.phone] : [])
+              const allContacts = selectedCompany.assignedContacts || []
+              
               return (
                 <div className="space-y-6">
                   {/* Company Name */}
@@ -504,39 +776,88 @@ export function Companies() {
                     </div>
                   </div>
                   
-                  {/* Address */}
+                  {/* All Addresses */}
                   <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Dirección Fiscal</p>
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-foreground">{selectedCompany.address || 'No especificado'}</p>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                      Dirección Fiscal {allAddresses.length > 1 && `(${allAddresses.length})`}
+                    </p>
+                    <div className="space-y-2">
+                      {allAddresses.length > 0 ? allAddresses.map((addr, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                          <p className="text-sm text-foreground">{addr}</p>
+                        </div>
+                      )) : (
+                        <p className="text-sm text-muted-foreground">No especificado</p>
+                      )}
                     </div>
                   </div>
                   
-                  {/* Email and Phone */}
+                  {/* All Emails and Phones */}
                   <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Correo Electrónico</p>
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <a href={`mailto:${selectedCompany.email}`} className="text-sm text-blue-600 hover:text-blue-700 underline">
-                          {selectedCompany.email || 'No especificado'}
-                        </a>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                        Correo Electrónico {allEmails.length > 1 && `(${allEmails.length})`}
+                      </p>
+                      <div className="space-y-2">
+                        {allEmails.length > 0 ? allEmails.map((email, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <a href={`mailto:${email}`} className="text-sm text-blue-600 hover:text-blue-700 underline">
+                              {email}
+                            </a>
+                          </div>
+                        )) : (
+                          <p className="text-sm text-muted-foreground">No especificado</p>
+                        )}
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Teléfono de Contacto</p>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <a href={`tel:${selectedCompany.phone}`} className="text-sm text-blue-600 hover:text-blue-700 underline">
-                          {selectedCompany.phone || 'No especificado'}
-                        </a>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                        Teléfono de Contacto {allPhones.length > 1 && `(${allPhones.length})`}
+                      </p>
+                      <div className="space-y-2">
+                        {allPhones.length > 0 ? allPhones.map((phone, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <a href={`tel:${phone}`} className="text-sm text-blue-600 hover:text-blue-700 underline">
+                              {phone}
+                            </a>
+                          </div>
+                        )) : (
+                          <p className="text-sm text-muted-foreground">No especificado</p>
+                        )}
                       </div>
                     </div>
                   </div>
                   
-                  {/* Contact Person Card */}
-                  {selectedCompany.contact && (
+                  {/* All Assigned Contacts */}
+                  {allContacts.length > 0 && (
+                    <div className="rounded-lg border border-border bg-muted/40 p-4">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                        Contactos Asignados ({allContacts.length})
+                      </p>
+                      <div className="space-y-3">
+                        {allContacts.map((contact, idx) => (
+                          <div key={idx} className="flex items-center gap-3">
+                            <div className={cn(
+                              "flex items-center justify-center w-10 h-10 rounded-full font-semibold text-sm",
+                              idx === 0 ? "bg-blue-100 text-blue-600" : "bg-muted text-muted-foreground"
+                            )}>
+                              {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">{contact.name}</p>
+                              <p className="text-xs text-muted-foreground uppercase">{contact.role}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Legacy Contact Person Card - only show if no assigned contacts but has contact field */}
+                  {allContacts.length === 0 && selectedCompany.contact && (
                     <div className="rounded-lg border border-border bg-muted/40 p-4">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Contacto Directo</p>
                       <div className="flex items-center gap-3">

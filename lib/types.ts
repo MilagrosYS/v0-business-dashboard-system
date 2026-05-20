@@ -9,6 +9,11 @@ export interface Company {
   lastActivity: Date
   createdAt: Date
   status: 'active' | 'inactive'
+  // Multiple data arrays
+  emails?: string[]
+  phones?: string[]
+  addresses?: string[]
+  assignedContacts?: { name: string; role: string }[]
 }
 
 export interface SparePart {
@@ -48,12 +53,25 @@ export interface InventoryItem {
 
 export type ActivityStatus = 'active' | 'warning' | 'inactive'
 
-export function getActivityStatus(lastActivity: Date): ActivityStatus {
-  const now = new Date()
-  const diffDays = Math.floor((now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24))
+// Status labels for UI display
+export const statusLabels: Record<ActivityStatus, string> = {
+  active: 'Activo',
+  warning: 'Inactivo reciente',
+  inactive: 'Sin actividad',
+}
+
+// Calculate status based on last quotation date
+// GREEN (active): Has quotation in last 3 months
+// ORANGE (warning): No quotation in last 3 months, but has one in last 5 months
+// RED (inactive): No quotation in more than 5 months
+export function getActivityStatus(lastQuotationDate: Date | null): ActivityStatus {
+  if (!lastQuotationDate) return 'inactive'
   
-  if (diffDays <= 30) return 'active'
-  if (diffDays <= 90) return 'warning'
+  const now = new Date()
+  const diffMonths = (now.getTime() - lastQuotationDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+  
+  if (diffMonths <= 3) return 'active'
+  if (diffMonths <= 5) return 'warning'
   return 'inactive'
 }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Plus, Search, Trash2, X, Package, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Search, Trash2, X, Package, MapPin, ChevronLeft, ChevronRight, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -56,6 +56,9 @@ export function SpareParts() {
     measurement: '',
     price: '',
     location: '',
+    locations: [] as string[],
+    suppliers: [] as string[],
+    assignedContacts: [] as { name: string; role: string }[],
   })
   
   // Check if form has required data and has changed
@@ -120,6 +123,9 @@ export function SpareParts() {
       measurement: '',
       price: '',
       location: '',
+      locations: [],
+      suppliers: [],
+      assignedContacts: [],
     })
     setModalMode('create')
   }
@@ -136,6 +142,9 @@ export function SpareParts() {
       measurement: part.measurement || '',
       price: part.price.toString(),
       location: part.location || '',
+      locations: part.location ? [part.location] : [],
+      suppliers: [],
+      assignedContacts: [],
     })
     setModalMode('edit')
   }
@@ -520,7 +529,7 @@ export function SpareParts() {
       
       {/* Create/Edit Modal */}
       <Dialog open={modalMode === 'create' || modalMode === 'edit'} onOpenChange={closeModal}>
-        <DialogContent className="sm:max-w-2xl border-0 shadow-lg p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-4xl border-0 shadow-lg p-0 overflow-hidden">
           {/* Blue top border accent */}
           <div className="h-1 bg-gradient-to-r from-blue-600 to-blue-400" />
           
@@ -545,177 +554,310 @@ export function SpareParts() {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Row 1: Codigo Interno and Numero de Parte */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="internalCode" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Codigo Interno
-                  </Label>
-                  <Input
-                    id="internalCode"
-                    value={formData.internalCode}
-                    onChange={(e) => setFormData({ ...formData, internalCode: e.target.value })}
-                    placeholder="Ingresa codigo interno"
-                    className="text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="partNumber" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Numero de Parte *
-                  </Label>
-                  <Input
-                    id="partNumber"
-                    value={formData.partNumber}
-                    onChange={(e) => setFormData({ ...formData, partNumber: e.target.value })}
-                    placeholder="Ingresa numero de parte"
-                    required
-                    className="text-sm"
-                  />
-                </div>
-              </div>
-              
-              {/* Row 2: Modelo and Equipo */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="model" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Modelo
-                  </Label>
-                  <Input
-                    id="model"
-                    value={formData.model}
-                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                    placeholder="Ingresa modelo"
-                    className="text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="equipment" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Equipo
-                  </Label>
-                  <Input
-                    id="equipment"
-                    value={formData.equipment}
-                    onChange={(e) => setFormData({ ...formData, equipment: e.target.value })}
-                    placeholder="Ingresa equipo"
-                    className="text-sm"
-                  />
-                </div>
-              </div>
-              
-              {/* Row 3: Descripcion */}
-              <div className="space-y-2">
-                <Label htmlFor="description" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Descripcion *
-                </Label>
-                <Input
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Ingresa descripcion"
-                  required
-                  className="text-sm"
-                />
-              </div>
-              
-              {/* Row 4: Funcion and Categoria */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="function" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Funcion
-                  </Label>
-                  <Input
-                    id="function"
-                    value={formData.function}
-                    onChange={(e) => setFormData({ ...formData, function: e.target.value })}
-                    placeholder="Ingresa funcion del componente"
-                    className="text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Categoria
-                  </Label>
-                  <select
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            <form onSubmit={handleSubmit}>
+              {/* Three Column Layout */}
+              <div className="grid grid-cols-3 gap-6">
+                {/* Column 1: INFORMACION BASICA */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-4 bg-blue-600 rounded-full" />
+                    <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+                      Informacion Basica
+                    </h3>
+                  </div>
+                  
+                  {/* Numero de Parte */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="partNumber" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Numero de Parte
+                    </Label>
+                    <Input
+                      id="partNumber"
+                      value={formData.partNumber}
+                      onChange={(e) => setFormData({ ...formData, partNumber: e.target.value })}
+                      placeholder="3128 3140 12"
+                      required
+                      className="text-sm"
+                    />
+                  </div>
+                  
+                  {/* Codigo Interno and Categoria */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="internalCode" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Codigo Interno
+                      </Label>
+                      <Input
+                        id="internalCode"
+                        value={formData.internalCode}
+                        onChange={(e) => setFormData({ ...formData, internalCode: e.target.value })}
+                        placeholder="20170072465"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="category" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Categoria
+                      </Label>
+                      <select
+                        id="category"
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      >
+                        <option value="">Seleccionar</option>
+                        {CATEGORIES.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* Descripcion */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="description" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Descripcion
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 flex items-center gap-2 px-3 py-2 border border-input rounded-md bg-background">
+                        <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <Input
+                          id="description"
+                          value={formData.description}
+                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                          placeholder="Descripcion del repuesto"
+                          required
+                          className="text-sm border-0 p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                        onClick={() => setFormData({ ...formData, description: '' })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                    onClick={() => {/* Add more description logic */}}
                   >
-                    <option value="">Seleccionar categoría</option>
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
+                    <Plus className="h-4 w-4" />
+                    <span>+ AGREGAR</span>
+                  </button>
+                </div>
+                
+                {/* Column 2: ESPECIFICACIONES */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-4 bg-blue-600 rounded-full" />
+                    <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+                      Especificaciones
+                    </h3>
+                  </div>
+                  
+                  {/* Modelo */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="model" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Modelo
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="model"
+                        value={formData.model}
+                        onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                        placeholder="modelo@equipo.pe"
+                        className="text-sm flex-1"
+                      />
+                      <button
+                        type="button"
+                        className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                        onClick={() => setFormData({ ...formData, model: '' })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Equipo */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="equipment" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Equipo
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="equipment"
+                        value={formData.equipment}
+                        onChange={(e) => setFormData({ ...formData, equipment: e.target.value })}
+                        placeholder="equipo@maquinaria.pe"
+                        className="text-sm flex-1"
+                      />
+                      <button
+                        type="button"
+                        className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                        onClick={() => setFormData({ ...formData, equipment: '' })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                    onClick={() => {/* Add more specs logic */}}
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>+ AGREGAR</span>
+                  </button>
+                  
+                  {/* Medida y Precio */}
+                  <div className="space-y-1.5 pt-2">
+                    <Label htmlFor="measurement" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Medida / Precio
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="measurement"
+                        value={formData.measurement}
+                        onChange={(e) => setFormData({ ...formData, measurement: e.target.value })}
+                        placeholder="Medida"
+                        className="text-sm flex-1"
+                      />
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        placeholder="$0.00"
+                        className="text-sm w-24"
+                      />
+                      <button
+                        type="button"
+                        className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                        onClick={() => setFormData({ ...formData, measurement: '', price: '' })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                    onClick={() => {/* Add more measurement/price logic */}}
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>+ AGREGAR</span>
+                  </button>
+                </div>
+                
+                {/* Column 3: UBICACION / FUNCION */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-4 bg-blue-600 rounded-full" />
+                    <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+                      Ubicacion y Funcion
+                    </h3>
+                  </div>
+                  
+                  {/* Location items */}
+                  <div className="space-y-2">
+                    {(formData.locations.length > 0 ? formData.locations : [formData.location || '']).filter(Boolean).map((loc, index) => (
+                      <div 
+                        key={index}
+                        className="flex items-center gap-3 p-3 border border-border rounded-lg bg-background"
+                      >
+                        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-100 text-blue-600 text-xs font-semibold flex-shrink-0">
+                          {loc.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{loc}</p>
+                          <p className="text-xs text-muted-foreground uppercase">Almacen</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newLocations = formData.locations.filter((_, i) => i !== index)
+                            setFormData({ ...formData, locations: newLocations, location: newLocations[0] || '' })
+                          }}
+                          className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
                     ))}
-                  </select>
+                    
+                    {/* Empty state or add new location */}
+                    {formData.locations.length === 0 && !formData.location && (
+                      <div className="space-y-1.5">
+                        <Input
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          placeholder="Ubicacion en almacen"
+                          className="text-sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full justify-center py-2 border border-dashed border-border rounded-lg"
+                    onClick={() => {
+                      const newLoc = prompt('Ingrese nueva ubicacion:')
+                      if (newLoc) {
+                        const currentLocations = formData.locations.length > 0 ? formData.locations : (formData.location ? [formData.location] : [])
+                        setFormData({ ...formData, locations: [...currentLocations, newLoc], location: currentLocations[0] || newLoc })
+                      }
+                    }}
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>AGREGAR UBICACION</span>
+                  </button>
+                  
+                  {/* Funcion */}
+                  <div className="space-y-1.5 pt-2">
+                    <Label htmlFor="function" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Funcion del Componente
+                    </Label>
+                    <Input
+                      id="function"
+                      value={formData.function}
+                      onChange={(e) => setFormData({ ...formData, function: e.target.value })}
+                      placeholder="Funcion del repuesto"
+                      className="text-sm"
+                    />
+                  </div>
                 </div>
-              </div>
-              
-              {/* Row 5: Medida and Precio */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="measurement" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Medida
-                  </Label>
-                  <Input
-                    id="measurement"
-                    value={formData.measurement}
-                    onChange={(e) => setFormData({ ...formData, measurement: e.target.value })}
-                    placeholder="Ingresa medida"
-                    className="text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Precio ($)
-                  </Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="Ingresa precio"
-                    className="text-sm"
-                  />
-                </div>
-              </div>
-              
-              {/* Row 6: Ubicacion */}
-              <div className="space-y-2">
-                <Label htmlFor="location" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Ubicacion
-                </Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="Ingresa ubicacion en almacen"
-                  className="text-sm"
-                />
               </div>
               
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t border-border">
+              <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-border">
                 <Button 
                   type="button" 
-                  variant="outline" 
-                  className="flex-1 text-sm"
+                  variant="ghost" 
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground"
                   onClick={closeModal}
                 >
-                  Cancelar
+                  CANCELAR
                 </Button>
                 <Button 
                   type="submit" 
                   disabled={!canSubmit}
                   className={cn(
-                    "flex-1 bg-foreground text-background hover:bg-foreground/90 text-sm",
+                    "bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium px-6",
                     !canSubmit && 'opacity-50 cursor-not-allowed'
                   )}
                 >
-                  {modalMode === 'create' ? 'Crear Repuesto' : 'Guardar Cambios'}
+                  GUARDAR CAMBIOS
                 </Button>
               </div>
             </form>
