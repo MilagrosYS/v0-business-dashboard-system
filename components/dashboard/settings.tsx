@@ -448,9 +448,9 @@ export function Settings() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Company Basic Info */}
-          <div className="grid gap-4 md:grid-cols-2 pb-4 border-b">
-            <div className="space-y-3">
+          {/* Company Basic Info - Razón Social & RUC */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase">Razón Social</label>
               <Input
                 value={businessInfo.companyName}
@@ -459,7 +459,7 @@ export function Settings() {
               />
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase">RUC</label>
               <Input
                 value={businessInfo.ruc}
@@ -469,104 +469,122 @@ export function Settings() {
             </div>
           </div>
           
-          {/* Addresses */}
-          <div className="space-y-4">
+          {/* Addresses Section */}
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-muted-foreground uppercase">Dirección</label>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-primary text-xs font-semibold"
+                className="text-primary text-xs font-semibold h-auto p-0"
                 onClick={() => {}}
               >
                 + AGREGAR
               </Button>
             </div>
             
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-muted-foreground uppercase">Sede Lima</p>
-              <Input
-                value={businessInfo.addressLima}
-                onChange={(e) => setBusinessInfo({ ...businessInfo, addressLima: e.target.value })}
-                placeholder="Calle Los Metales 120, Urbanización Industrial, Lima"
-              />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase w-20">Sede Lima</span>
+                <Input
+                  value={businessInfo.addressLima}
+                  onChange={(e) => setBusinessInfo({ ...businessInfo, addressLima: e.target.value })}
+                  placeholder="Av. Industrial 450, Parque Industrial, Arequipa"
+                  className="flex-1"
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-destructive hover:text-destructive h-auto p-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-muted-foreground uppercase">Sede AQP</p>
-              <Input
-                value={businessInfo.addressArequipa}
-                onChange={(e) => setBusinessInfo({ ...businessInfo, addressArequipa: e.target.value })}
-                placeholder="Av. Industrial 450, Parque Industrial, Arequipa"
-              />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase w-20">Sede AQP</span>
+                <Input
+                  value={businessInfo.addressArequipa}
+                  onChange={(e) => setBusinessInfo({ ...businessInfo, addressArequipa: e.target.value })}
+                  placeholder="Calle Los Metales 120, Urbanización Industrial, Lima"
+                  className="flex-1"
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-destructive hover:text-destructive h-auto p-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
           
-          {/* Email */}
-          <div className="space-y-4 pt-4 border-t">
+          {/* Email & Phone Section */}
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-muted-foreground uppercase">Email</label>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-primary text-xs font-semibold"
+                className="text-primary text-xs font-semibold h-auto p-0"
                 onClick={() => {}}
               >
                 + AGREGAR
               </Button>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Input
-                type="email"
-                value={businessInfo.email}
-                onChange={(e) => setBusinessInfo({ ...businessInfo, email: e.target.value })}
-                placeholder="contacto@machina-erp.pe"
-              />
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          
-          {/* Phone */}
-          <div className="space-y-4 pt-4 border-t">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-muted-foreground uppercase">Teléfono</label>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-primary text-xs font-semibold"
-                onClick={() => {}}
-              >
-                + AGREGAR
-              </Button>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Input
-                value={businessInfo.phone}
-                onChange={(e) => setBusinessInfo({ ...businessInfo, phone: e.target.value })}
-                placeholder="+51 987 654 321"
-              />
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+            <div className="grid gap-2 md:grid-cols-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  type="email"
+                  value={businessInfo.email}
+                  onChange={(e) => setBusinessInfo({ ...businessInfo, email: e.target.value })}
+                  placeholder="contacto@machina-erp.pe"
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-destructive hover:text-destructive h-auto p-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase whitespace-nowrap">Teléfono</span>
+                <Input
+                  value={businessInfo.phone}
+                  onChange={(e) => setBusinessInfo({ ...businessInfo, phone: e.target.value })}
+                  placeholder="+51 987 654 321"
+                  className="flex-1"
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-destructive hover:text-destructive h-auto p-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-primary text-xs font-semibold h-auto p-0"
+                  onClick={() => {}}
+                >
+                  + AGREGAR
+                </Button>
+              </div>
             </div>
           </div>
           
           <Button 
             onClick={handleSaveBusinessInfo}
             disabled={!hasBusinessChanges}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
+            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold mt-4"
           >
             {businessSaved ? (
               <span className="flex items-center gap-2">
