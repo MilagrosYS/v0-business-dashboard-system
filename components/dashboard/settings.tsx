@@ -184,17 +184,21 @@ export function Settings() {
             <CardTitle className="text-base font-semibold">Configuración del Sistema</CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-3">
+        <CardContent>
+          <div className="grid gap-6 md:grid-cols-4 items-end">
             <div className="space-y-3">
               <label className="text-xs font-semibold text-muted-foreground uppercase">IGV (%)</label>
-              <Input
-                type="number"
-                step="0.1"
-                value={igvPercentage}
-                onChange={(e) => setIgvPercentage(e.target.value)}
-                placeholder="18"
-              />
+              <div className="relative">
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={igvPercentage}
+                  onChange={(e) => setIgvPercentage(e.target.value)}
+                  placeholder="18"
+                  className="pr-8"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+              </div>
             </div>
             
             <div className="space-y-3">
@@ -223,25 +227,25 @@ export function Settings() {
                 />
               </div>
             </div>
+            
+            <Button 
+              onClick={handleSaveSettings}
+              disabled={!hasSettingsChanges}
+              className="bg-primary hover:bg-primary/90 text-white font-semibold h-10 whitespace-nowrap"
+            >
+              {settingsSaved ? (
+                <span className="flex items-center gap-2">
+                  <Check className="h-4 w-4" />
+                  Guardado!
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
+                  GUARDAR CAMBIOS
+                </span>
+              )}
+            </Button>
           </div>
-          
-          <Button 
-            onClick={handleSaveSettings}
-            disabled={!hasSettingsChanges}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
-          >
-            {settingsSaved ? (
-              <span className="flex items-center gap-2">
-                <Check className="h-4 w-4" />
-                Guardado!
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Save className="h-4 w-4" />
-                GUARDAR CAMBIOS
-              </span>
-            )}
-          </Button>
         </CardContent>
       </Card>
       
