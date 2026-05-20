@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { useDashboardStore } from '@/lib/store'
-import { Company, getActivityStatus, ActivityStatus } from '@/lib/types'
+import { Company, getActivityStatus, ActivityStatus, statusLabels } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 type ModalMode = 'create' | 'edit' | 'view' | null
@@ -34,16 +34,10 @@ const statusColors: Record<ActivityStatus, string> = {
   inactive: 'bg-status-inactive',
 }
 
-const statusLabels: Record<ActivityStatus, string> = {
-  active: 'Activo',
-  warning: 'Moderado',
-  inactive: 'Inactivo',
-}
-
 export function Companies() {
-  const { companies, addCompany, updateCompany, deleteCompany } = useDashboardStore()
+  const { companies, addCompany, updateCompany, deleteCompany, getLastQuotationDateForCompany } = useDashboardStore()
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | ActivityStatus>('all')
   const [modalMode, setModalMode] = useState<ModalMode>(null)
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<Company | null>(null)
@@ -57,7 +51,6 @@ export function Companies() {
     contact: '',
     phone: '',
     email: '',
-    status: 'active' as 'active' | 'inactive',
     emails: [] as string[],
     phones: [] as string[],
     addresses: [] as string[],
@@ -73,8 +66,7 @@ export function Companies() {
       formData.address !== selectedCompany.address ||
       formData.contact !== selectedCompany.contact ||
       formData.phone !== selectedCompany.phone ||
-      formData.email !== selectedCompany.email ||
-      formData.status !== selectedCompany.status
+      formData.email !== selectedCompany.email
     )
   )
   const canSubmit = isFormValid && hasChanges
@@ -92,13 +84,17 @@ export function Companies() {
       )
     }
     
-    // Filter by status
+    // Filter by automatic status based on quotation dates
     if (statusFilter !== 'all') {
-      result = result.filter((c) => c.status === statusFilter)
+      result = result.filter((c) => {
+        const lastQuotationDate = getLastQuotationDateForCompany(c.id)
+        const companyStatus = getActivityStatus(lastQuotationDate)
+        return companyStatus === statusFilter
+      })
     }
     
     return result
-  }, [companies, search, statusFilter])
+  }, [companies, search, statusFilter, getLastQuotationDateForCompany])
   
   const openCreate = () => {
     setFormData({ 
@@ -108,7 +104,6 @@ export function Companies() {
       contact: '', 
       phone: '', 
       email: '', 
-      status: 'active',
       emails: [],
       phones: [],
       addresses: [],
@@ -127,7 +122,6 @@ export function Companies() {
       contact: company.contact,
       phone: company.phone,
       email: company.email,
-      status: company.status,
       emails: company.emails || (company.email ? [company.email] : []),
       phones: company.phones || (company.phone ? [company.phone] : []),
       addresses: company.addresses || (company.address ? [company.address] : []),
@@ -210,12 +204,13 @@ export function Companies() {
                 <select
                   id="status-filter"
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                  onChange={(e) => setStatusFilter(e.target.value as 'all' | ActivityStatus)}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="all">Todos</option>
-                  <option value="active">Activo</option>
-                  <option value="inactive">Inactivo</option>
+                  <option value="active">Activo (cotizacion en ultimos 3 meses)</option>
+                  <option value="warning">Inactivo reciente (3-5 meses sin cotizacion)</option>
+                  <option value="inactive">Sin actividad (mas de 5 meses)</option>
                 </select>
               </div>
             </div>
@@ -250,7 +245,8 @@ export function Companies() {
                 </TableRow>
               ) : (
                 filteredCompanies.map((company) => {
-                  const status = getActivityStatus(company.lastActivity)
+                  const lastQuotationDate = getLastQuotationDateForCompany(company.id)
+                  const status = getActivityStatus(lastQuotationDate)
                   const isHovered = hoveredRow === company.id
                   return (
                     <TableRow 
@@ -354,35 +350,19 @@ export function Companies() {
                     />
                   </div>
                   
-                  {/* RUC and Estado */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="ruc" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        RUC
-                      </Label>
-                      <Input
-                        id="ruc"
-                        value={formData.ruc}
-                        onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
-                        placeholder="20170072465"
-                        required
-                        className="text-sm"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="status" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Estado
-                      </Label>
-                      <select
-                        id="status"
-                        value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
-                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      >
-                        <option value="active">Activo</option>
-                        <option value="inactive">Inactivo</option>
-                      </select>
-                    </div>
+                  {/* RUC */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="ruc" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      RUC
+                    </Label>
+                    <Input
+                      id="ruc"
+                      value={formData.ruc}
+                      onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
+                      placeholder="20170072465"
+                      required
+                      className="text-sm"
+                    />
                   </div>
                   
                   {/* Direccion Fiscal */}
@@ -644,7 +624,8 @@ export function Companies() {
             </div>
             
             {selectedCompany && (() => {
-              const status = getActivityStatus(selectedCompany.lastActivity)
+              const lastQuotationDate = getLastQuotationDateForCompany(selectedCompany.id)
+              const status = getActivityStatus(lastQuotationDate)
               return (
                 <div className="space-y-6">
                   {/* Company Name */}

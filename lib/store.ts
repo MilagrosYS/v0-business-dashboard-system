@@ -434,6 +434,7 @@ interface DashboardStore {
   deleteQuotation: (id: string) => void
   getNextQuotationNumber: () => string
   getQuotationsByCompany: (companyId: string) => Quotation[]
+  getLastQuotationDateForCompany: (companyId: string) => Date | null
   duplicateQuotation: (id: string) => Quotation | null
   
   // Auth & Settings
@@ -701,6 +702,15 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     return get().quotations
       .filter((q) => q.companyId === companyId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+  },
+  
+  getLastQuotationDateForCompany: (companyId) => {
+    const companyQuotations = get().quotations.filter((q) => q.companyId === companyId)
+    if (companyQuotations.length === 0) return null
+    
+    // Find the most recent quotation date
+    const sortedQuotations = companyQuotations.sort((a, b) => b.date.getTime() - a.date.getTime())
+    return sortedQuotations[0].date
   },
   
   duplicateQuotation: (id) => {
