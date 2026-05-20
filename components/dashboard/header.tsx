@@ -8,9 +8,10 @@ import { cn } from '@/lib/utils'
 interface HeaderProps {
   sidebarCollapsed?: boolean
   onNavigateToSettings?: () => void
+  activeSection?: string
 }
 
-export function Header({ sidebarCollapsed = false, onNavigateToSettings }: HeaderProps) {
+export function Header({ sidebarCollapsed = false, onNavigateToSettings, activeSection }: HeaderProps) {
   const { userProfile, logout } = useDashboardStore()
   const [showDropdown, setShowDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -33,9 +34,17 @@ export function Header({ sidebarCollapsed = false, onNavigateToSettings }: Heade
   
   return (
     <header className={cn(
-      'fixed right-0 top-0 z-30 flex h-16 items-center justify-end border-b border-border bg-card/80 px-6 backdrop-blur-sm transition-all duration-300 ease-in-out',
+      'fixed right-0 top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-sm transition-all duration-300 ease-in-out',
       sidebarCollapsed ? 'ml-16 w-[calc(100%-4rem)]' : 'ml-64 w-[calc(100%-16rem)]'
     )}>
+      {/* Left Section - Section Title */}
+      <div>
+        {activeSection === 'settings' && (
+          <h2 className="text-lg font-semibold text-primary">Configuración</h2>
+        )}
+      </div>
+      
+      {/* Right Section - User Menu */}
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setShowDropdown(!showDropdown)}
