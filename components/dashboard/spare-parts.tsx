@@ -21,17 +21,18 @@ import { Label } from '@/components/ui/label'
 import { useDashboardStore } from '@/lib/store'
 import { SparePart, normalizePartNumber } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { getArrayOrFallback } from '@/lib/utils'
 
 type ModalMode = 'create' | 'edit' | 'detail' | null
 
 const CATEGORIES = ['Filtración', 'Rodillos', 'Tuberías', 'Componentes', 'Accesorios', 'Otros']
 const ITEMS_PER_PAGE = 12
 
-// Stock level color mapping - only for CANTIDAD column
+// Stock level color mapping
 const getStockColor = (quantity: number) => {
-  if (quantity <= 5) return 'text-red-600' // Bajo stock
-  if (quantity <= 15) return 'text-orange-500' // Medio stock
-  return 'text-green-600' // Buen stock
+  if (quantity <= 5) return 'text-red-600'
+  if (quantity <= 15) return 'text-orange-500'
+  return 'text-green-600'
 }
 
 export function SpareParts() {
@@ -63,19 +64,17 @@ export function SpareParts() {
   
   // Check if form has required data and has changed
   const isFormValid = formData.partNumber.trim() !== '' && formData.description.trim() !== ''
-  const hasChanges = modalMode === 'create' ? true : (
-    selectedPart && (
-      formData.internalCode !== (selectedPart.internalCode || '') ||
-      formData.partNumber !== selectedPart.partNumber ||
-      formData.model !== (selectedPart.model || '') ||
-      formData.equipment !== (selectedPart.equipment || '') ||
-      formData.description !== selectedPart.description ||
-      formData.function !== (selectedPart.function || '') ||
-      formData.category !== (selectedPart.category || '') ||
-      formData.measurement !== (selectedPart.measurement || '') ||
-      formData.price !== selectedPart.price.toString() ||
-      formData.location !== (selectedPart.location || '')
-    )
+  const hasChanges = !selectedPart ? true : (
+    formData.internalCode !== (selectedPart.internalCode || '') ||
+    formData.partNumber !== selectedPart.partNumber ||
+    formData.model !== (selectedPart.model || '') ||
+    formData.equipment !== (selectedPart.equipment || '') ||
+    formData.description !== selectedPart.description ||
+    formData.function !== (selectedPart.function || '') ||
+    formData.category !== (selectedPart.category || '') ||
+    formData.measurement !== (selectedPart.measurement || '') ||
+    formData.price !== selectedPart.price.toString() ||
+    formData.location !== (selectedPart.location || '')
   )
   const canSubmit = isFormValid && hasChanges
   
@@ -770,7 +769,7 @@ export function SpareParts() {
                   
                   {/* Location items */}
                   <div className="space-y-2">
-                    {(formData.locations.length > 0 ? formData.locations : [formData.location || '']).filter(Boolean).map((loc, index) => (
+                    {getArrayOrFallback(formData.locations, formData.location).filter(Boolean).map((loc, index) => (
                       <div 
                         key={index}
                         className="flex items-center gap-3 p-3 border border-border rounded-lg bg-background"
@@ -785,7 +784,7 @@ export function SpareParts() {
                         <button
                           type="button"
                           onClick={() => {
-                            const newLocations = formData.locations.filter((_, i) => i !== index)
+                            const newLocations = getArrayOrFallback(formData.locations, formData.location).filter((_, i) => i !== index)
                             setFormData({ ...formData, locations: newLocations, location: newLocations[0] || '' })
                           }}
                           className="p-1 text-muted-foreground hover:text-destructive transition-colors"
@@ -814,7 +813,7 @@ export function SpareParts() {
                     onClick={() => {
                       const newLoc = prompt('Ingrese nueva ubicacion:')
                       if (newLoc) {
-                        const currentLocations = formData.locations.length > 0 ? formData.locations : (formData.location ? [formData.location] : [])
+                        const currentLocations = getArrayOrFallback(formData.locations, formData.location)
                         setFormData({ ...formData, locations: [...currentLocations, newLoc], location: currentLocations[0] || newLoc })
                       }
                     }}

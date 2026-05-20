@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useMemo } from 'react'
-import { User, Settings as SettingsIcon, Save, Eye, EyeOff, Check, Building2, CreditCard, Plus, Trash2, Camera } from 'lucide-react'
+import { User, Lock, Settings as SettingsIcon, Save, Eye, EyeOff, Check, Building2, CreditCard, Trash2, Camera } from 'lucide-react'
 import { useDashboardStore } from '@/lib/store'
 import { BankAccount } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -176,46 +176,111 @@ export function Settings() {
   
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Configuracion</h2>
-        <p className="text-muted-foreground">Administra tu perfil y preferencias del sistema</p>
-      </div>
-      
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Profile Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <User className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Perfil</CardTitle>
-                <CardDescription>Actualiza tu informacion de cuenta</CardDescription>
+      {/* System Settings Card - FIRST */}
+      <Card className="border-l-4 border-l-primary">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <SettingsIcon className="h-5 w-5 text-primary" />
+            <CardTitle className="text-base font-semibold">Configuración del Sistema</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-6 md:grid-cols-4 items-end">
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">IGV (%)</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={igvPercentage}
+                  onChange={(e) => setIgvPercentage(e.target.value)}
+                  placeholder="18"
+                  className="pr-8"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
+            
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Moneda por Defecto</label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="USD">Dólares (USD)</option>
+                <option value="PEN">Soles (PEN)</option>
+              </select>
+            </div>
+            
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Tipo de Cambio</label>
               <div className="relative">
-                {profileImage ? (
-                  <img 
-                    src={profileImage} 
-                    alt="Perfil" 
-                    className="h-16 w-16 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
-                    {name.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={exchangeRate}
+                  onChange={(e) => setExchangeRate(e.target.value)}
+                  placeholder="3.4"
+                  className="pl-7"
+                />
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleSaveSettings}
+              disabled={!hasSettingsChanges}
+              className="bg-primary hover:bg-primary/90 text-white font-semibold h-10 whitespace-nowrap"
+            >
+              {settingsSaved ? (
+                <span className="flex items-center gap-2">
+                  <Check className="h-4 w-4" />
+                  Guardado!
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
+                  GUARDAR CAMBIOS
+                </span>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Profile & Security Section - Side by Side - SECOND */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Profile Card */}
+        <Card className="border-l-4 border-l-primary">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <User className="h-5 w-5 text-primary" />
+              <CardTitle className="text-base font-semibold">Perfil de Usuario</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col items-start gap-4">
+              <div className="flex flex-col items-start gap-2">
+                <div className="relative">
+                  {profileImage ? (
+                    <img 
+                      src={profileImage} 
+                      alt="Perfil" 
+                      className="h-24 w-24 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-24 w-24 items-center justify-center rounded bg-primary/10 text-2xl font-bold text-primary">
+                      {name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
+                  className="text-xs font-semibold text-primary hover:underline"
                 >
-                  <Camera className="h-3.5 w-3.5" />
+                  Cambiar Foto
                 </button>
                 <input
                   ref={fileInputRef}
@@ -225,33 +290,35 @@ export function Settings() {
                   className="hidden"
                 />
               </div>
-              <div>
-                <p className="font-medium">{name}</p>
-                <p className="text-sm text-muted-foreground">@{username}</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase">Nombre Completo</label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Luis"
+                  className="border-0 border-b border-border rounded-none px-0 py-2"
+                />
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nombre</label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Tu nombre"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Usuario</label>
-              <Input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Tu usuario"
-              />
+              
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-2">
+                  <span>●</span> Nombre de Usuario
+                </label>
+                <Input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="admin"
+                  className="border-0 border-b border-border rounded-none px-0 py-2"
+                />
+              </div>
             </div>
             
             <Button 
               onClick={handleSaveProfile} 
-              className="w-full transition-opacity"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
               disabled={!hasProfileChanges}
             >
               {profileSaved ? (
@@ -262,66 +329,78 @@ export function Settings() {
               ) : (
                 <span className="flex items-center gap-2">
                   <Save className="h-4 w-4" />
-                  Guardar Perfil
+                  GUARDAR CAMBIOS
                 </span>
               )}
             </Button>
           </CardContent>
         </Card>
         
-        {/* Password Card */}
-        <Card>
+        {/* Security Card */}
+        <Card className="border-l-4 border-l-primary">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <User className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Cambiar Contrasena</CardTitle>
-                <CardDescription>Actualiza tu contrasena de acceso</CardDescription>
-              </div>
+              <Lock className="h-5 w-5 text-primary" />
+              <CardTitle className="text-base font-semibold">Seguridad</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Nueva Contrasena</label>
-              <div className="relative">
-                <Input
-                  type={showNewPassword ? 'text' : 'password'}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Ingresa nueva contrasena"
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Contraseña Actual</label>
+              <Input
+                type="password"
+                placeholder="••••••••"
+                disabled
+                className="border-0 border-b border-border rounded-none px-0 py-2"
+              />
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase">Nueva Contraseña</label>
+                <div className="relative">
+                  <Input
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder=""
+                    className="border-0 border-b border-border rounded-none px-0 py-2 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase">Confirmar</label>
+                <div className="relative">
+                  <Input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder=""
+                    className="border-0 border-b border-border rounded-none px-0 py-2 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             </div>
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Confirmar Nueva Contrasena</label>
-              <div className="relative">
-                <Input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirma nueva contrasena"
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground flex items-start gap-2">
+              <span className="text-primary flex-shrink-0">ⓘ</span>
+              <span>La contraseña debe tener al menos 8 caracteres.</span>
+            </p>
             
             {passwordError && (
               <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
@@ -331,284 +410,285 @@ export function Settings() {
             
             {passwordSuccess && (
               <div className="rounded-lg bg-green-500/10 p-3 text-sm text-green-600">
-                Contrasena actualizada correctamente!
+                Contraseña actualizada correctamente!
               </div>
             )}
             
             <Button 
               onClick={handleChangePassword} 
-              className="w-full transition-opacity"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold"
               disabled={!newPassword || !confirmPassword}
             >
-              <Save className="mr-2 h-4 w-4" />
-              Cambiar Contrasena
+              {passwordSuccess ? (
+                <span className="flex items-center gap-2">
+                  <Check className="h-4 w-4" />
+                  Guardado!
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
+                  GUARDAR CAMBIOS
+                </span>
+              )}
             </Button>
           </CardContent>
         </Card>
-        
-        {/* System Settings Card */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
+      </div>
+      
+      {/* Business Info Card */}
+      <Card className="border-l-4 border-l-primary">
+        <CardHeader>
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <SettingsIcon className="h-5 w-5 text-primary" />
-              </div>
+              <Building2 className="h-5 w-5 text-primary" />
               <div>
-                <CardTitle className="text-lg">Configuracion del Sistema</CardTitle>
-                <CardDescription>Configura las preferencias de negocio</CardDescription>
+                <CardTitle className="text-base font-semibold">Información de la Empresa</CardTitle>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 md:grid-cols-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">IGV (%)</label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={igvPercentage}
-                  onChange={(e) => setIgvPercentage(e.target.value)}
-                  placeholder="18"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Moneda por Defecto</label>
-                <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="USD">USD ($)</option>
-                  <option value="PEN">PEN (S/)</option>
-                </select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tipo de Cambio (PEN/USD)</label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={exchangeRate}
-                  onChange={(e) => setExchangeRate(e.target.value)}
-                  placeholder="3.75"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Vendedor por Defecto</label>
-                <Input
-                  value={sellerName}
-                  onChange={(e) => setSellerName(e.target.value)}
-                  placeholder="Nombre del vendedor"
-                />
-              </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Company Basic Info - Razón Social & RUC */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Razón Social</label>
+              <Input
+                value={businessInfo.companyName}
+                onChange={(e) => setBusinessInfo({ ...businessInfo, companyName: e.target.value })}
+                placeholder="MACHINA ERP INDUSTRIAL S.A.C."
+              />
             </div>
             
-            <div className="mt-6">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">RUC</label>
+              <Input
+                value={businessInfo.ruc}
+                onChange={(e) => setBusinessInfo({ ...businessInfo, ruc: e.target.value })}
+                placeholder="20601234567"
+              />
+            </div>
+          </div>
+          
+          {/* Addresses Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Dirección</label>
               <Button 
-                onClick={handleSaveSettings}
-                disabled={!hasSettingsChanges}
-                className="transition-opacity"
+                variant="ghost" 
+                size="sm" 
+                className="text-primary text-xs font-semibold h-auto p-0"
+                onClick={() => {}}
               >
-                {settingsSaved ? (
-                  <span className="flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    Guardado!
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Save className="h-4 w-4" />
-                    Guardar Configuracion
-                  </span>
-                )}
+                + AGREGAR
               </Button>
             </div>
-          </CardContent>
-        </Card>
-        
-        {/* Business Info Card */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <Building2 className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Informacion de la Empresa</CardTitle>
-                <CardDescription>Datos que apareceran en las cotizaciones PDF</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Nombre de Empresa</label>
-                <Input
-                  value={businessInfo.companyName}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, companyName: e.target.value })}
-                  placeholder="Nombre de la empresa"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">RUC</label>
-                <Input
-                  value={businessInfo.ruc}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, ruc: e.target.value })}
-                  placeholder="RUC de la empresa"
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium">Direccion Arequipa</label>
-                <Input
-                  value={businessInfo.addressArequipa}
-                  onChange={(e) => setBusinessInfo({ ...businessInfo, addressArequipa: e.target.value })}
-                  placeholder="Direccion en Arequipa"
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium">Direccion Lima</label>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase w-20">Sede Lima</span>
                 <Input
                   value={businessInfo.addressLima}
                   onChange={(e) => setBusinessInfo({ ...businessInfo, addressLima: e.target.value })}
-                  placeholder="Direccion en Lima"
+                  placeholder="Av. Industrial 450, Parque Industrial, Arequipa"
+                  className="flex-1"
                 />
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-destructive hover:text-destructive h-auto p-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase w-20">Sede AQP</span>
+                <Input
+                  value={businessInfo.addressArequipa}
+                  onChange={(e) => setBusinessInfo({ ...businessInfo, addressArequipa: e.target.value })}
+                  placeholder="Calle Los Metales 120, Urbanización Industrial, Lima"
+                  className="flex-1"
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-destructive hover:text-destructive h-auto p-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Email & Phone Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Email</label>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-primary text-xs font-semibold h-auto p-0"
+                onClick={() => {}}
+              >
+                + AGREGAR
+              </Button>
+            </div>
+            
+            <div className="grid gap-2 md:grid-cols-2">
+              <div className="flex items-center gap-2">
                 <Input
                   type="email"
                   value={businessInfo.email}
                   onChange={(e) => setBusinessInfo({ ...businessInfo, email: e.target.value })}
-                  placeholder="Email de contacto"
+                  placeholder="contacto@machina-erp.pe"
                 />
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-destructive hover:text-destructive h-auto p-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Telefono</label>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase whitespace-nowrap">Teléfono</span>
                 <Input
                   value={businessInfo.phone}
                   onChange={(e) => setBusinessInfo({ ...businessInfo, phone: e.target.value })}
-                  placeholder="Telefono de contacto"
+                  placeholder="+51 987 654 321"
+                  className="flex-1"
                 />
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-destructive hover:text-destructive h-auto p-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-primary text-xs font-semibold h-auto p-0"
+                  onClick={() => {}}
+                >
+                  + AGREGAR
+                </Button>
               </div>
             </div>
-            
-            <div className="mt-6">
-              <Button 
-                onClick={handleSaveBusinessInfo}
-                disabled={!hasBusinessChanges}
-                className="transition-opacity"
-              >
-                {businessSaved ? (
-                  <span className="flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    Guardado!
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Save className="h-4 w-4" />
-                    Guardar Informacion
-                  </span>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Bank Accounts Card */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <CreditCard className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Cuentas Bancarias</CardTitle>
-                  <CardDescription>Cuentas para mostrar en cotizaciones</CardDescription>
-                </div>
+          </div>
+          
+          <Button 
+            onClick={handleSaveBusinessInfo}
+            disabled={!hasBusinessChanges}
+            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold mt-4"
+          >
+            {businessSaved ? (
+              <span className="flex items-center gap-2">
+                <Check className="h-4 w-4" />
+                Guardado!
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                GUARDAR CAMBIOS
+              </span>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+      
+      {/* Bank Accounts Card */}
+      <Card className="border-l-4 border-l-primary">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CreditCard className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle className="text-base font-semibold">Cuentas Bancarias</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">Cuentas para mostrar en cotizaciones</p>
               </div>
-              <Button onClick={addBankAccount} variant="outline" size="sm">
-                <Plus className="mr-1 h-4 w-4" />
-                Agregar
-              </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {bankAccounts.map((account, index) => (
-                <div key={index} className="grid gap-4 rounded-lg border border-border p-4 md:grid-cols-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Banco</label>
-                    <Input
-                      value={account.bankName}
-                      onChange={(e) => updateBankAccount(index, 'bankName', e.target.value)}
-                      placeholder="Nombre del banco"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">N° Cuenta</label>
-                    <Input
-                      value={account.accountNumber}
-                      onChange={(e) => updateBankAccount(index, 'accountNumber', e.target.value)}
-                      placeholder="Numero de cuenta"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">CCI (opcional)</label>
+            <Button 
+              onClick={addBankAccount} 
+              variant="ghost" 
+              size="sm"
+              className="text-primary text-xs font-semibold"
+            >
+              + AGREGAR
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {bankAccounts.map((account, index) => (
+            <div key={index} className="border rounded-lg p-4 space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">Banco</label>
+                  <Input
+                    value={account.bankName}
+                    onChange={(e) => updateBankAccount(index, 'bankName', e.target.value)}
+                    placeholder="BCP"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">Nº Cuenta</label>
+                  <Input
+                    value={account.accountNumber}
+                    onChange={(e) => updateBankAccount(index, 'accountNumber', e.target.value)}
+                    placeholder="215-0578-2429-1-33"
+                  />
+                </div>
+                <div className="space-y-3 flex items-end justify-between">
+                  <div className="flex-1 space-y-3">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">CCI (Opcional)</label>
                     <Input
                       value={account.cci || ''}
                       onChange={(e) => updateBankAccount(index, 'cci', e.target.value)}
-                      placeholder="Codigo interbancario"
+                      placeholder="0022151057842429133"
                     />
                   </div>
-                  <div className="flex items-end">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setBankToDeleteIndex(index)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setBankToDeleteIndex(index)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-              ))}
-              
-              {bankAccounts.length === 0 && (
-                <p className="text-center text-sm text-muted-foreground">
-                  No hay cuentas bancarias configuradas
-                </p>
-              )}
+              </div>
             </div>
-            
-            <div className="mt-6">
-              <Button 
-                onClick={handleSaveBankAccounts}
-                disabled={!hasBankChanges}
-                className="transition-opacity"
-              >
-                {banksSaved ? (
-                  <span className="flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    Guardado!
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Save className="h-4 w-4" />
-                    Guardar Cuentas
-                  </span>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          ))}
+          
+          {bankAccounts.length === 0 && (
+            <p className="text-center text-sm text-muted-foreground py-8">
+              No hay cuentas bancarias configuradas
+            </p>
+          )}
+          
+          <Button 
+            onClick={handleSaveBankAccounts}
+            disabled={!hasBankChanges}
+            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold mt-6"
+          >
+            {banksSaved ? (
+              <span className="flex items-center gap-2">
+                <Check className="h-4 w-4" />
+                Guardado!
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                GUARDAR CUENTAS
+              </span>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
       
       {/* Bank Account Delete Confirmation */}
       <AlertDialog open={bankToDeleteIndex !== null} onOpenChange={() => setBankToDeleteIndex(null)}>

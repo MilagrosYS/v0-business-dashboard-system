@@ -1,15 +1,17 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, LogOut } from 'lucide-react'
+import { ChevronDown, LogOut, Settings as SettingsIcon } from 'lucide-react'
 import { useDashboardStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
 
 interface HeaderProps {
   sidebarCollapsed?: boolean
+  onNavigateToSettings?: () => void
+  activeSection?: string
 }
 
-export function Header({ sidebarCollapsed = false }: HeaderProps) {
+export function Header({ sidebarCollapsed = false, onNavigateToSettings, activeSection }: HeaderProps) {
   const { userProfile, logout } = useDashboardStore()
   const [showDropdown, setShowDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -32,9 +34,17 @@ export function Header({ sidebarCollapsed = false }: HeaderProps) {
   
   return (
     <header className={cn(
-      'fixed right-0 top-0 z-30 flex h-16 items-center justify-end border-b border-border bg-card/80 px-6 backdrop-blur-sm transition-all duration-300 ease-in-out',
+      'fixed right-0 top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-sm transition-all duration-300 ease-in-out',
       sidebarCollapsed ? 'ml-16 w-[calc(100%-4rem)]' : 'ml-64 w-[calc(100%-16rem)]'
     )}>
+      {/* Left Section - Section Title */}
+      <div>
+        {activeSection === 'settings' && (
+          <h2 className="text-lg font-semibold text-primary">Configuración</h2>
+        )}
+      </div>
+      
+      {/* Right Section - User Menu */}
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setShowDropdown(!showDropdown)}
@@ -60,9 +70,21 @@ export function Header({ sidebarCollapsed = false }: HeaderProps) {
           <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
         </button>
         
-        {/* Dropdown Menu - Only Cerrar Sesion */}
+        {/* Dropdown Menu - Settings & Cerrar Sesion */}
         {showDropdown && (
           <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-border bg-card py-1 shadow-lg">
+            {onNavigateToSettings && (
+              <button
+                onClick={() => {
+                  setShowDropdown(false)
+                  onNavigateToSettings()
+                }}
+                className="flex w-full items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted"
+              >
+                <SettingsIcon className="h-4 w-4" />
+                Configuración
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="flex w-full items-center gap-3 px-4 py-2 text-sm text-destructive hover:bg-muted"
