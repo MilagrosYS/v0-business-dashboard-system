@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { Plus, Search, Pencil, Trash2, X, Building2, MapPin, Mail, Phone, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,6 +43,9 @@ export function Companies() {
   const [deleteConfirm, setDeleteConfirm] = useState<Company | null>(null)
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   
+  // Ref to track when we're intentionally switching from view to edit mode
+  const isSwitchingToEdit = useRef(false)
+  
   // Form state
   const [formData, setFormData] = useState({
     name: '',
@@ -64,6 +67,7 @@ export function Companies() {
   const [newContactName, setNewContactName] = useState('')
   const [newContactRole, setNewContactRole] = useState('')
   const [showAddContact, setShowAddContact] = useState(false)
+  const [editingContactIndex, setEditingContactIndex] = useState<number | null>(null)
   
   // Helper to compare arrays - filter out empty strings before comparison
   const arraysEqual = (a: string[], b: string[]) => {
@@ -144,11 +148,12 @@ export function Companies() {
     setNewContactName('')
     setNewContactRole('')
     setShowAddContact(false)
+    setEditingContactIndex(null)
     setModalMode('create')
   }
   
-  const openEdit = (company: Company, e: React.MouseEvent) => {
-    e.stopPropagation()
+  const openEdit = (company: Company, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
     setSelectedCompany(company)
     
     // Properly load all existing data including arrays
@@ -191,7 +196,12 @@ export function Companies() {
     setNewContactName('')
     setNewContactRole('')
     setShowAddContact(false)
+    setEditingContactIndex(null)
     setModalMode('edit')
+    // Reset the switch flag after a brief delay to allow the Dialog state to settle
+    setTimeout(() => {
+      isSwitchingToEdit.current = false
+    }, 50)
   }
   
   const openView = (company: Company) => {
@@ -200,11 +210,13 @@ export function Companies() {
   }
   
   const closeModal = () => {
+    isSwitchingToEdit.current = false
     setModalMode(null)
     setSelectedCompany(null)
     setNewContactName('')
     setNewContactRole('')
     setShowAddContact(false)
+    setEditingContactIndex(null)
   }
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -591,36 +603,102 @@ export function Companies() {
                   {/* Contact cards */}
                   <div className="space-y-2">
                     {formData.assignedContacts.map((contact, index) => (
-                      <div 
-                        key={index}
-                        className="flex items-center gap-3 p-3 border border-border rounded-lg bg-background"
-                      >
-                        <div className={cn(
-                          "flex items-center justify-center w-9 h-9 rounded-lg text-xs font-semibold flex-shrink-0",
-                          index === 0 ? "bg-blue-100 text-blue-600" : "bg-muted text-muted-foreground"
-                        )}>
-                          {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      editingContactIndex === index ? (
+                        // Inline edit form for this contact
+                        <div key={index} className="p-3 border border-blue-300 rounded-lg bg-blue-50/50 space-y-3">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">Nombre</Label>
+                            <Input
+                              value={newContactName}
+                              onChange={(e) => setNewContactName(e.target.value)}
+                              placeholder="Nombre del contacto"
+                              className="text-sm"
+                              autoFocus
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">Cargo</Label>
+                            <Input
+                              value={newContactRole}
+                              onChange={(e) => setNewContactRole(e.target.value)}
+                              placeholder="Cargo del contacto"
+                              className="text-sm"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="flex-1 text-xs"
+                              onClick={() => {
+                                setEditingContactIndex(null)
+                                setNewContactName('')
+                                setNewContactRole('')
+                              }}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="flex-1 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                              disabled={!newContactName.trim() || !newContactRole.trim()}
+                              onClick={() => {
+                                if (newContactName.trim() && newContactRole.trim()) {
+                                  const newContacts = [...formData.assignedContacts]
+                                  newContacts[index] = { name: newContactName.trim(), role: newContactRole.trim() }
+                                  setFormData({ ...formData, assignedContacts: newContacts })
+                                  setEditingContactIndex(null)
+                                  setNewContactName('')
+                                  setNewContactRole('')
+                                }
+                              }}
+                            >
+                              Guardar
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{contact.name}</p>
-                          <p className="text-xs text-muted-foreground uppercase">{contact.role}</p>
-                        </div>
-                        <button
-                          type="button"
+                      ) : (
+                        // Contact card (clickable to edit)
+                        <div 
+                          key={index}
+                          className="flex items-center gap-3 p-3 border border-border rounded-lg bg-background cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition-colors"
                           onClick={() => {
-                            const newContacts = formData.assignedContacts.filter((_, i) => i !== index)
-                            setFormData({ ...formData, assignedContacts: newContacts })
+                            setEditingContactIndex(index)
+                            setNewContactName(contact.name)
+                            setNewContactRole(contact.role)
+                            setShowAddContact(false)
                           }}
-                          className="p-1 text-muted-foreground hover:text-destructive transition-colors"
                         >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
+                          <div className={cn(
+                            "flex items-center justify-center w-9 h-9 rounded-lg text-xs font-semibold flex-shrink-0",
+                            index === 0 ? "bg-blue-100 text-blue-600" : "bg-muted text-muted-foreground"
+                          )}>
+                            {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{contact.name}</p>
+                            <p className="text-xs text-muted-foreground uppercase">{contact.role}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const newContacts = formData.assignedContacts.filter((_, i) => i !== index)
+                              setFormData({ ...formData, assignedContacts: newContacts })
+                            }}
+                            className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )
                     ))}
                   </div>
                   
-                  {/* Add Contact Form - Inline */}
-                  {showAddContact ? (
+                  {/* Add Contact Form - Inline (only show when not editing an existing contact) */}
+                  {showAddContact && editingContactIndex === null ? (
                     <div className="p-3 border border-border rounded-lg bg-muted/30 space-y-3">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-medium text-muted-foreground">Nombre</Label>
@@ -675,16 +753,21 @@ export function Companies() {
                         </Button>
                       </div>
                     </div>
-                  ) : (
+                  ) : editingContactIndex === null ? (
                     <button
                       type="button"
                       className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full justify-center py-2 border border-dashed border-border rounded-lg"
-                      onClick={() => setShowAddContact(true)}
+                      onClick={() => {
+                        setShowAddContact(true)
+                        setEditingContactIndex(null)
+                        setNewContactName('')
+                        setNewContactRole('')
+                      }}
                     >
                       <UserPlus className="h-4 w-4" />
                       <span>AGREGAR CONTACTO</span>
                     </button>
-                  )}
+                  ) : null}
                 </div>
               </div>
               
@@ -715,7 +798,12 @@ export function Companies() {
       </Dialog>
       
       {/* View Modal - Detail Modal */}
-      <Dialog open={modalMode === 'view'} onOpenChange={closeModal}>
+      <Dialog open={modalMode === 'view'} onOpenChange={(open) => {
+        // Only close when the dialog is being closed AND we're not switching to edit mode
+        if (!open && !isSwitchingToEdit.current) {
+          closeModal()
+        }
+      }}>
         <DialogContent className="sm:max-w-2xl border-0 shadow-lg p-0 overflow-hidden">
           {/* Blue top border accent */}
           <div className="h-1 bg-gradient-to-r from-blue-600 to-blue-400" />
@@ -885,8 +973,11 @@ export function Companies() {
                       className="flex-1 bg-foreground text-background hover:bg-foreground/90 text-sm"
                       onClick={(e) => {
                         e.stopPropagation()
-                        closeModal()
-                        setTimeout(() => openEdit(selectedCompany, e as any), 100)
+                        if (selectedCompany) {
+                          // Set flag before switching to prevent closeModal from running
+                          isSwitchingToEdit.current = true
+                          openEdit(selectedCompany)
+                        }
                       }}
                     >
                       Editar

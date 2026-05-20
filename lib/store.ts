@@ -18,6 +18,13 @@ const sampleCompanies: Company[] = [
     lastActivity: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
     status: 'active',
+    emails: ['compras@cerroverde.pe', 'logistica@cerroverde.pe'],
+    phones: ['+51 954 782 145', '+51 987 654 123'],
+    addresses: ['Carretera Variante de Uchumayo Km 24, Arequipa'],
+    assignedContacts: [
+      { name: 'Carlos Mendoza', role: 'Gerente de Compras' },
+      { name: 'Maria Garcia', role: 'Jefe de Logistica' },
+    ],
   },
   {
     id: generateId(),
@@ -30,6 +37,12 @@ const sampleCompanies: Company[] = [
     lastActivity: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
     createdAt: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000),
     status: 'active',
+    emails: ['adquisiciones@southernperu.com.pe'],
+    phones: ['+51 987 654 321'],
+    addresses: ['Av. Caminos del Inca 171, Lima'],
+    assignedContacts: [
+      { name: 'Ana Rodriguez', role: 'Coordinadora de Adquisiciones' },
+    ],
   },
   {
     id: generateId(),
