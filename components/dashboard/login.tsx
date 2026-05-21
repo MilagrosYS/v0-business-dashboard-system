@@ -49,9 +49,9 @@ export function Login() {
       
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-2xl">
-        <div className="flex flex-col lg:flex-row overflow-hidden shadow-2xl bg-white rounded-3xl">
+        <div className="flex flex-col lg:flex-row overflow-hidden shadow-2xl bg-white/30 backdrop-blur-xl border border-white/40 rounded-3xl">
           {/* Left side - Illustration */}
-          <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100">
+          <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-white/20 backdrop-blur-md">
             <img
               src="/images/fondo-ilustracion-login.png"
               alt="Ilustración"
@@ -60,7 +60,7 @@ export function Login() {
           </div>
           
           {/* Right side - Login form */}
-          <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 lg:p-12 bg-white">
+          <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 lg:p-12 bg-white/20 backdrop-blur-md">
             <div className="w-full max-w-sm space-y-8">
               {/* Logo section */}
               <div className="flex justify-center mb-6">
