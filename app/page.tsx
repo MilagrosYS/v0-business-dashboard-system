@@ -60,7 +60,7 @@ export default function Dashboard() {
       />
       
       <main className={cn(
-        'min-h-screen pt-16 p-8 transition-all duration-300 ease-in-out',
+        'pt-16 p-8 transition-all duration-300 ease-in-out',
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       )}>
         {activeSection === 'overview' && (
