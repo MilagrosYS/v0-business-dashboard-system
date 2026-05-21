@@ -36,36 +36,49 @@ export function Login() {
   }
   
   return (
-    <div className="relative min-h-screen flex overflow-hidden bg-slate-950">
-      {/* Left side - Illustration */}
-      <div className="hidden lg:flex w-1/2 items-center justify-center p-8 bg-gradient-to-br from-slate-900 to-slate-950">
-        <img
-          src="/images/fondo-ilustracion.png"
-          alt="Ilustración"
-          className="w-full h-full object-contain max-w-lg"
-        />
-      </div>
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4"
+      style={{
+        backgroundImage: "url('/images/fondo-detras-login.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}>
       
-      {/* Right side - Login form */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 lg:p-12 bg-gradient-to-b from-slate-950 to-slate-900">
-        <div className="w-full max-w-md space-y-8">
-          {/* Logo section */}
-          <div className="flex justify-center mb-8">
+      {/* Subtle overlay */}
+      <div className="absolute inset-0 bg-black/10" />
+      
+      {/* Login Card */}
+      <div className="relative z-10 w-full max-w-4xl">
+        <div className="flex flex-col lg:flex-row rounded-2xl overflow-hidden shadow-2xl bg-white">
+          {/* Left side - Illustration */}
+          <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-slate-100">
             <img
-              src="/images/logo-maquinarias.png"
-              alt="VR Maquinarias Inversiones"
-              className="h-20 object-contain"
+              src="/images/fondo-ilustracion-login.png"
+              alt="Ilustración"
+              className="w-full h-full object-contain"
             />
           </div>
+          
+          {/* Right side - Login form */}
+          <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 lg:p-12 bg-white">
+            <div className="w-full max-w-sm space-y-8">
+              {/* Logo section */}
+              <div className="flex justify-center mb-6">
+                <img
+                  src="/images/logo-maquinarias.png"
+                  alt="VR Maquinarias Inversiones"
+                  className="h-16 object-contain"
+                />
+              </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Usuario field */}
             <div className="space-y-2">
-              <label htmlFor="username" className="block text-sm font-semibold text-white/90">
+              <label htmlFor="username" className="block text-sm font-semibold text-gray-700">
                 Usuario
               </label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
+                <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="username"
                   type="text"
@@ -73,18 +86,18 @@ export function Login() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  className="border border-white/20 bg-white/5 pl-12 text-white placeholder:text-white/40 focus:border-blue-500/50 focus:bg-white/10 focus:ring-blue-500/20 rounded-xl"
+                  className="border border-gray-200 bg-gray-50 pl-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl"
                 />
               </div>
             </div>
             
             {/* Contraseña field */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-semibold text-white/90">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
                 Contraseña
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
+                <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -92,12 +105,12 @@ export function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="border border-white/20 bg-white/5 pl-12 pr-12 text-white placeholder:text-white/40 focus:border-blue-500/50 focus:bg-white/10 focus:ring-blue-500/20 rounded-xl"
+                  className="border border-gray-200 bg-gray-50 pl-12 pr-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 transition-colors hover:text-white/80"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600"
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -110,7 +123,7 @@ export function Login() {
             
             {/* Error message */}
             {error && (
-              <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+              <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">
                 {error}
               </div>
             )}
@@ -119,7 +132,7 @@ export function Login() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-500/30 transition-all duration-200 hover:bg-blue-500 hover:shadow-xl hover:shadow-blue-500/50 disabled:opacity-70"
+              className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-200 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/40 disabled:opacity-70"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -134,9 +147,10 @@ export function Login() {
               )}
             </Button>
           </form>
+            </div>
+          </div>
         </div>
       </div>
-      
       {/* CSS for animations */}
       <style>{`
         @keyframes twinkle {
