@@ -38,23 +38,23 @@ export function Login() {
   return (
     <>
       {/* Mobile Version */}
-      <div className="lg:hidden relative min-h-screen flex items-start pt-16 justify-start overflow-hidden p-4"
+      <div className="lg:hidden relative min-h-screen flex items-start pt-20 justify-start overflow-hidden p-4"
         style={{
-          backgroundImage: "url('/login/fondo-movil')",
+          backgroundImage: "url('/login/fondo-movil.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'
         }}>
         
         {/* Mobile form container */}
-        <div className="relative z-10 w-full max-w-sm mx-auto">
+        <div className="relative z-10 w-full max-w-[300px] mx-auto">
           <div className="flex flex-col items-center space-y-4">
             {/* Logo section */}
             <div className="flex justify-center">
               <img
                 src="/login/logo.png"
                 alt="VR Maquinarias Inversiones"
-                className="h-16 object-contain"
+                className="h-36 w-auto object-contain"
               />
             </div>
             
@@ -73,7 +73,7 @@ export function Login() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="border border-gray-200 bg-white pl-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-full py-2"
+                    className="border border-gray-200 bg-white pl-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-full h-12"
                   />
                 </div>
               </div>
@@ -92,7 +92,7 @@ export function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="border border-gray-200 bg-white pl-12 pr-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-full py-2"
+                    className="border border-gray-200 bg-white pl-12 pr-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-full h-12"
                   />
                   <button
                     type="button"
@@ -100,9 +100,9 @@ export function Login() {
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600"
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
+                      <EyeOff className="h-6 w-6" />
                     ) : (
-                      <Eye className="h-5 w-5" />
+                      <Eye className="h-6 w-6" />
                     )}
                   </button>
                 </div>
@@ -110,7 +110,7 @@ export function Login() {
               
               {/* Error message */}
               {error && (
-                <div className="rounded-lg border border-red-300 bg-red-50 p-2 text-xs text-red-700">
+                <div className="rounded-lg border border-red-300 bg-red-50 p-2 text-red-700">
                   {error}
                 </div>
               )}
@@ -119,7 +119,7 @@ export function Login() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-full bg-blue-600 px-6 py-2 font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-200 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/40 disabled:opacity-70 text-sm"
+                className="w-full h-12 rounded-full bg-blue-600 mt-4 text-base font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-200 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/40 disabled:opacity-70"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -127,7 +127,7 @@ export function Login() {
                     Iniciando sesión...
                   </span>
                 ) : (
-                  <span className="flex items-center justify-center gap-2">
+                  <span className="flex items-center justify-center gap-3">
                     <LogIn className="h-5 w-5" />
                     Iniciar sesión
                   </span>
@@ -141,7 +141,7 @@ export function Login() {
       {/* Desktop Version */}
       <div className="hidden lg:flex relative min-h-screen items-center justify-center overflow-hidden p-4"
         style={{
-          backgroundImage: "url('/login/fondo.png')",
+          backgroundImage: "url('/login/fondoo.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'
@@ -167,20 +167,20 @@ export function Login() {
             </div>
             
             {/* Right side - Login form */}
-            <div className="flex-1 flex flex-col justify-center px-8 py-24 bg-white/5">
+            <div className="flex-1 flex flex-col justify-center px-8 py-24">
               <div className="w-full max-w-sm space-y-8">
                 {/* Logo section */}
                 <div className="flex justify-center mb-6">
                   <img
                     src="/login/logo.png"
                     alt="VR Maquinarias Inversiones"
-                    className="h-32 w-auto object-contain"
+                    className="h-36 w-auto object-contain"
                   />
                 </div>
             
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Usuario field */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label htmlFor="username-desktop" className="block text-sm font-semibold text-gray-700">
                   Usuario
                 </label>
@@ -199,7 +199,7 @@ export function Login() {
               </div>
               
               {/* Contraseña field */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label htmlFor="password-desktop" className="block text-sm font-semibold text-gray-700">
                   Contraseña
                 </label>
@@ -239,7 +239,7 @@ export function Login() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-200 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/40 disabled:opacity-70"
+                className="w-full rounded-xl bg-blue-600 mt-4 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-200 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/40 disabled:opacity-70"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
