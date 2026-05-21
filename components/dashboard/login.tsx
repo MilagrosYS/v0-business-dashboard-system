@@ -38,7 +38,7 @@ export function Login() {
   return (
     <>
       {/* Mobile Version */}
-      <div className="lg:hidden relative min-h-screen flex items-center justify-center overflow-hidden p-4"
+      <div className="lg:hidden relative min-h-screen flex items-start pt-16 justify-start overflow-hidden p-4"
         style={{
           backgroundImage: "url('/images/fondo-login-movil.png')",
           backgroundSize: 'cover',
@@ -47,21 +47,21 @@ export function Login() {
         }}>
         
         {/* Mobile form container */}
-        <div className="relative z-10 w-full max-w-sm">
-          <div className="flex flex-col items-center justify-center space-y-8">
+        <div className="relative z-10 w-full max-w-sm mx-auto">
+          <div className="flex flex-col items-center space-y-4">
             {/* Logo section */}
             <div className="flex justify-center">
               <img
                 src="/images/logo-maquinarias.png"
                 alt="VR Maquinarias Inversiones"
-                className="h-20 object-contain"
+                className="h-16 object-contain"
               />
             </div>
             
-            <form onSubmit={handleSubmit} className="w-full space-y-6">
+            <form onSubmit={handleSubmit} className="w-full space-y-4">
               {/* Usuario field */}
-              <div className="space-y-2">
-                <label htmlFor="username-mobile" className="block text-lg font-semibold text-slate-800">
+              <div className="space-y-1">
+                <label htmlFor="username-mobile" className="block text-base font-semibold text-slate-800">
                   Usuario
                 </label>
                 <div className="relative">
@@ -73,14 +73,14 @@ export function Login() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="border border-gray-200 bg-white pl-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-full py-3"
+                    className="border border-gray-200 bg-white pl-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-full py-2"
                   />
                 </div>
               </div>
               
               {/* Contraseña field */}
-              <div className="space-y-2">
-                <label htmlFor="password-mobile" className="block text-lg font-semibold text-slate-800">
+              <div className="space-y-1">
+                <label htmlFor="password-mobile" className="block text-base font-semibold text-slate-800">
                   Contraseña
                 </label>
                 <div className="relative">
@@ -92,7 +92,7 @@ export function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="border border-gray-200 bg-white pl-12 pr-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-full py-3"
+                    className="border border-gray-200 bg-white pl-12 pr-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-full py-2"
                   />
                   <button
                     type="button"
@@ -110,7 +110,7 @@ export function Login() {
               
               {/* Error message */}
               {error && (
-                <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+                <div className="rounded-lg border border-red-300 bg-red-50 p-2 text-xs text-red-700">
                   {error}
                 </div>
               )}
@@ -119,7 +119,7 @@ export function Login() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-full bg-blue-600 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-200 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/40 disabled:opacity-70"
+                className="w-full rounded-full bg-blue-600 px-6 py-2 font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-200 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/40 disabled:opacity-70 text-sm"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
