@@ -6,8 +6,8 @@ import { useDashboardStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-// Background image URL - blue mountain landscape
-const BACKGROUND_IMAGE_URL = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop&q=80'
+// Background image URL - serene mountain landscape
+const BACKGROUND_IMAGE_URL = '/images/fondo-login.png'
 
 export function Login() {
   const { login } = useDashboardStore()
@@ -44,8 +44,8 @@ export function Login() {
           alt="Background"
           className="h-full w-full object-cover"
         />
-        {/* Dark overlay with gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/40 via-blue-900/30 to-purple-950/40" />
+        {/* Soft dark overlay for better readability */}
+        <div className="absolute inset-0 bg-slate-900/40" />
         
         {/* Animated stars effect */}
         <div className="absolute inset-0">
