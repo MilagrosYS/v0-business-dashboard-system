@@ -48,8 +48,8 @@ export function Login() {
       <div className="absolute inset-0 bg-black/10" />
       
       {/* Login Card */}
-      <div className="relative z-10 w-full max-w-4xl">
-        <div className="flex flex-col lg:flex-row overflow-hidden shadow-2xl bg-white">
+      <div className="relative z-10 w-full max-w-2xl">
+        <div className="flex flex-col lg:flex-row overflow-hidden shadow-2xl bg-white rounded-3xl">
           {/* Left side - Illustration */}
           <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100">
             <img
