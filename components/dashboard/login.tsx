@@ -49,13 +49,13 @@ export function Login() {
       
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-4xl">
-        <div className="flex flex-col lg:flex-row rounded-2xl overflow-hidden shadow-2xl bg-white">
+        <div className="flex flex-col lg:flex-row overflow-hidden shadow-2xl bg-white">
           {/* Left side - Illustration */}
-          <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-slate-100">
+          <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100">
             <img
               src="/images/fondo-ilustracion-login.png"
               alt="Ilustración"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
             />
           </div>
           
