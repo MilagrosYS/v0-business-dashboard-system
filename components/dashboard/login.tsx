@@ -6,8 +6,8 @@ import { useDashboardStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-// Background image URL - serene mountain landscape
-const BACKGROUND_IMAGE_URL = '/images/fondo-login.png'
+// Background image URL - now unused but kept for reference
+// const BACKGROUND_IMAGE_URL = '/images/fondo-login.png'
 
 export function Login() {
   const { login } = useDashboardStore()
@@ -36,52 +36,26 @@ export function Login() {
   }
   
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-      {/* Background with overlay */}
-      <div className="absolute inset-0 z-0">
+    <div className="relative min-h-screen flex overflow-hidden bg-slate-950">
+      {/* Left side - Illustration */}
+      <div className="hidden lg:flex w-1/2 items-center justify-center p-8 bg-gradient-to-br from-slate-900 to-slate-950">
         <img
-          src={BACKGROUND_IMAGE_URL}
-          alt="Background"
-          className="h-full w-full object-cover"
+          src="/images/fondo-ilustracion.png"
+          alt="Ilustración"
+          className="w-full h-full object-contain max-w-lg"
         />
-        {/* Very subtle overlay to maintain image colors */}
-        <div className="absolute inset-0 bg-black/15" />
-        
-        {/* Animated stars effect */}
-        <div className="absolute inset-0">
-          {[...Array(30)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute h-0.5 w-0.5 rounded-full bg-white/30"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animation: `twinkle ${2 + Math.random() * 3}s infinite`,
-                animationDelay: `${Math.random() * 2}s`,
-              }}
-            />
-          ))}
-        </div>
       </div>
       
-      {/* Glassmorphic card */}
-      <div className="relative z-10 w-full max-w-sm">
-        {/* Form card with glassmorphism */}
-        <div className="rounded-3xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-xl space-y-6">
-          {/* Logo section inside card */}
-          <div className="flex flex-col items-center space-y-4 pb-2">
-            <div className="h-20 w-28">
-              <img
-                src="/vr-logo.png"
-                alt="VR Maquinarias Inversiones"
-                className="h-full w-full object-contain"
-                width={112}
-                height={80}
-              />
-            </div>
-            <p className="text-center text-xs font-medium tracking-wide text-white/80">
-              Sistema de Gestión
-            </p>
+      {/* Right side - Login form */}
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 lg:p-12 bg-gradient-to-b from-slate-950 to-slate-900">
+        <div className="w-full max-w-md space-y-8">
+          {/* Logo section */}
+          <div className="flex justify-center mb-8">
+            <img
+              src="/images/logo-maquinarias.png"
+              alt="VR Maquinarias Inversiones"
+              className="h-20 object-contain"
+            />
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -99,7 +73,7 @@ export function Login() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  className="border-white/30 bg-white/10 pl-12 text-white placeholder:text-white/50 focus:border-blue-400/50 focus:bg-white/15 focus:ring-blue-400/20"
+                  className="border border-white/20 bg-white/5 pl-12 text-white placeholder:text-white/40 focus:border-blue-500/50 focus:bg-white/10 focus:ring-blue-500/20 rounded-xl"
                 />
               </div>
             </div>
@@ -118,7 +92,7 @@ export function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="border-white/30 bg-white/10 pl-12 pr-12 text-white placeholder:text-white/50 focus:border-blue-400/50 focus:bg-white/15 focus:ring-blue-400/20"
+                  className="border border-white/20 bg-white/5 pl-12 pr-12 text-white placeholder:text-white/40 focus:border-blue-500/50 focus:bg-white/10 focus:ring-blue-500/20 rounded-xl"
                 />
                 <button
                   type="button"
@@ -145,7 +119,7 @@ export function Login() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-xl hover:shadow-blue-500/50 hover:from-blue-500 hover:to-blue-400 disabled:opacity-70"
+              className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-500/30 transition-all duration-200 hover:bg-blue-500 hover:shadow-xl hover:shadow-blue-500/50 disabled:opacity-70"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -163,7 +137,7 @@ export function Login() {
         </div>
       </div>
       
-      {/* CSS for twinkling stars animation */}
+      {/* CSS for animations */}
       <style>{`
         @keyframes twinkle {
           0%, 100% { opacity: 0.3; }
