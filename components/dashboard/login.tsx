@@ -249,8 +249,7 @@ export function Login() {
                   </span>
                 )}
               </Button>
-              </form>
-                </div>
+            </form>
               </div>
             </div>
           </div>
