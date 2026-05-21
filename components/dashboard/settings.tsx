@@ -175,7 +175,7 @@ export function Settings() {
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-6">
       {/* System Settings Card - FIRST */}
       <Card className="border-l-4 border-l-primary">
         <CardHeader>
