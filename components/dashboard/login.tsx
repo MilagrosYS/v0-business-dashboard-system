@@ -44,8 +44,8 @@ export function Login() {
           alt="Background"
           className="h-full w-full object-cover"
         />
-        {/* Soft dark overlay for better readability */}
-        <div className="absolute inset-0 bg-slate-900/40" />
+        {/* Very subtle overlay to maintain image colors */}
+        <div className="absolute inset-0 bg-black/15" />
         
         {/* Animated stars effect */}
         <div className="absolute inset-0">
