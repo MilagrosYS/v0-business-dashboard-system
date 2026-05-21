@@ -34,8 +34,8 @@ export function Header({ sidebarCollapsed = false, onNavigateToSettings, activeS
   
   return (
     <header className={cn(
-      'fixed right-0 top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-sm transition-all duration-300 ease-in-out',
-      sidebarCollapsed ? 'ml-16 w-[calc(100%-4rem)]' : 'ml-64 w-[calc(100%-16rem)]'
+      'fixed top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-sm transition-all duration-300 ease-in-out',
+      sidebarCollapsed ? 'left-16 right-0' : 'left-64 right-0'
     )}>
       {/* Left Section - Section Title */}
       <div>
