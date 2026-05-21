@@ -40,7 +40,7 @@ export function Login() {
       {/* Mobile Version */}
       <div className="lg:hidden relative min-h-screen flex items-start pt-16 justify-start overflow-hidden p-4"
         style={{
-          backgroundImage: "url('/images/fondo-login-movil.png')",
+          backgroundImage: "url('/login/fondo-movil')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'
@@ -52,7 +52,7 @@ export function Login() {
             {/* Logo section */}
             <div className="flex justify-center">
               <img
-                src="/images/logo-maquinarias.png"
+                src="/login/logo.png"
                 alt="VR Maquinarias Inversiones"
                 className="h-16 object-contain"
               />
@@ -141,36 +141,40 @@ export function Login() {
       {/* Desktop Version */}
       <div className="hidden lg:flex relative min-h-screen items-center justify-center overflow-hidden p-4"
         style={{
-          backgroundImage: "url('/images/fondo-detras-login.png')",
+          backgroundImage: "url('/login/fondo.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'
         }}>
         
-        {/* Subtle overlay */}
-        <div className="absolute inset-0 bg-black/10" />
-        
         {/* Login Card */}
-        <div className="relative z-10 w-full max-w-2xl">
-          <div className="flex flex-col lg:flex-row overflow-hidden shadow-2xl bg-white/30 backdrop-blur-xl border border-white/40 rounded-3xl">
+        <div className="relative z-10 w-full max-w-3xl">
+          <div className="flex flex-col lg:flex-row overflow-hidden rounded-[30px] 
+            bg-white/5
+            backdrop-blur-[14px] 
+            border border-white/20 
+            shadow-[0_8px_32px_rgba(31,38,135,0.2)] 
+            h-[450px]">
+
             {/* Left side - Illustration */}
-            <div className="hidden lg:flex lg:w-1/2">
+            <div className="hidden lg:flex h-full w-[55%] overflow-hidden flex-shrink-0">
               <img
-                src="/images/fondo-ilustracion-login.png"
+                src="/login/login.png"
                 alt="Ilustración"
-                className="w-full h-full object-cover"
+                className="h-full w-auto object-contain"
+                draggable={false}
               />
             </div>
             
             {/* Right side - Login form */}
-            <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 lg:p-12 bg-white/20 backdrop-blur-md">
+            <div className="flex-1 flex flex-col justify-center px-8 py-24 bg-white/5">
               <div className="w-full max-w-sm space-y-8">
                 {/* Logo section */}
                 <div className="flex justify-center mb-6">
                   <img
-                    src="/images/logo-maquinarias.png"
+                    src="/login/logo.png"
                     alt="VR Maquinarias Inversiones"
-                    className="h-16 object-contain"
+                    className="h-32 w-auto object-contain"
                   />
                 </div>
             
