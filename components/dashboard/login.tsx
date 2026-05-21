@@ -51,7 +51,7 @@ export function Login() {
       <div className="relative z-10 w-full max-w-2xl">
         <div className="flex flex-col lg:flex-row overflow-hidden shadow-2xl bg-white/30 backdrop-blur-xl border border-white/40 rounded-3xl">
           {/* Left side - Illustration */}
-          <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-white/20 backdrop-blur-md">
+          <div className="hidden lg:flex lg:w-1/2">
             <img
               src="/images/fondo-ilustracion-login.png"
               alt="Ilustración"
